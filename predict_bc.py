@@ -28,19 +28,21 @@ df.index = df['date']
 
 #plot
 
-def plot_and_save(series, xlabel, ylabel, title, filename):
+def plot_and_save(series, xlabel, ylabel, title, legend, filename):
     plt.clf()
     plt.figure(figsize=(16,8))
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)    
     plt.plot(series)
+    plt.legend(legend, loc=4)
     plt.savefig('chart/'+filename)
 
-plot_and_save(df['close'], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', 'hourly_prices.png')
+plot_and_save(df['close'], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
+#this pointless ngl. don't use the function ^
 
 midpoint = 2350
-lookback = 85
+lookback = 100
 
 #creating dataframe
 data = df.sort_index(ascending=True, axis=0)
@@ -110,6 +112,7 @@ plt.title('Bitcoin Price History + Predictions')
 plt.plot(train['close'])
 plt.plot(valid['close'], label='close')
 plt.plot(valid['predictions'], label='predictions')
+plt.legend(['Actual', 'Predicted'], loc=4)
 plt.savefig('chart/predictions.png')
 
 # plot zoomed
@@ -118,16 +121,20 @@ plt.xlabel('Date')
 plt.ylabel('Bitcoin Price (USD)')
 plt.title('Bitcoin Price Predictions (zoomed)')    
 plt.plot(valid[['close','predictions']])
+plt.legend(['Actual', 'Predicted'], loc=4)
 plt.savefig('chart/predictions_zoomed.png')
 
-slope = pd.Series(np.gradient(valid.predictions.values), valid.predictions.index, name='slope')
+pred_slope = pd.Series(np.gradient(valid.predictions.values), valid.predictions.index, name='slope')
+Actual_slope = pd.Series(np.gradient(valid.close.values), valid.close.index, name='slope')
 
-df = pd.concat([valid.predictions.rename('predictions'), slope], axis=1)
+df = pd.concat([valid.predictions.rename('predictions'), pred_slope], axis=1)
 print(df)
 
 plt.clf()
 plt.xlabel('Date')
 plt.ylabel('Change in Bitcoin Price (USD)')
-plt.title('Change in Bitcoin Price Predictions')    
-plt.plot(slope)
+plt.title('Change in Bitcoin Price Predictions')
+plt.plot(Actual_slope)    
+plt.plot(pred_slope)
+plt.legend(['Actual', 'Predicted'], loc=4)
 plt.savefig('chart/slope.png')
