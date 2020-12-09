@@ -1,35 +1,25 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# In[1]:
-
-
-#import packages
 import pandas as pd
 import numpy as np
-
-#to plot within notebook
+from sklearn.preprocessing import MinMaxScaler
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, LSTM
+from sklearn.preprocessing import MinMaxScaler
+from matplotlib.pylab import rcParams
 import matplotlib.pyplot as plt
-#get_ipython().run_line_magic('matplotlib', 'inline')
-
 
 #setting figure size
-from matplotlib.pylab import rcParams
 rcParams['figure.figsize'] = 20,10
 
 #for normalizing data
-from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler(feature_range=(0, 1))
 
 #read the file
 df = pd.read_csv('data/Binance_BTCUSDT_1h.csv')
 
 #print the head
-df.head()
-
-
-# In[2]:
-
+print(df.head())
 
 #setting index as date
 df.keys()
@@ -37,19 +27,20 @@ df['date'] = pd.to_datetime(df.date)
 df.index = df['date']
 
 #plot
-plt.figure(figsize=(16,8))
-plt.plot(df['close'], label='Close Price history')
-plt.savefig('chart/hourly_prices.png')
 
-# In[3]:
+def plot_and_save(series, xlabel, ylabel, title, filename):
+    plt.clf()
+    plt.figure(figsize=(16,8))
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)    
+    plt.plot(series)
+    plt.savefig('chart/'+filename)
 
+plot_and_save(df['close'], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', 'hourly_prices.png')
 
-from sklearn.preprocessing import MinMaxScaler
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, LSTM
-
-midpoint = 2300
-lookback = 60
+midpoint = 2350
+lookback = 85
 
 #creating dataframe
 data = df.sort_index(ascending=True, axis=0)
@@ -103,21 +94,40 @@ X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
 closing_price = model.predict(X_test)
 closing_price = scaler.inverse_transform(closing_price)
 
-
-# In[4]:
-
-
 rms=np.sqrt(np.mean(np.power((valid-closing_price),2)))
 rms
-
-
-# In[5]:
-
 
 #for plotting
 train = new_data[:midpoint]
 valid = new_data[midpoint:]
 valid['predictions'] = closing_price
+
+# use standalone code because function is special enough
+plt.clf()
+plt.xlabel('Date')
+plt.ylabel('Bitcoin Price (USD)')
+plt.title('Bitcoin Price History + Predictions')    
 plt.plot(train['close'])
-plt.plot(valid[['close','predictions']])
+plt.plot(valid['close'], label='close')
+plt.plot(valid['predictions'], label='predictions')
 plt.savefig('chart/predictions.png')
+
+# plot zoomed
+plt.clf()
+plt.xlabel('Date')
+plt.ylabel('Bitcoin Price (USD)')
+plt.title('Bitcoin Price Predictions (zoomed)')    
+plt.plot(valid[['close','predictions']])
+plt.savefig('chart/predictions_zoomed.png')
+
+slope = pd.Series(np.gradient(valid.predictions.values), valid.predictions.index, name='slope')
+
+df = pd.concat([valid.predictions.rename('predictions'), slope], axis=1)
+print(df)
+
+plt.clf()
+plt.xlabel('Date')
+plt.ylabel('Change in Bitcoin Price (USD)')
+plt.title('Change in Bitcoin Price Predictions')    
+plt.plot(slope)
+plt.savefig('chart/slope.png')
