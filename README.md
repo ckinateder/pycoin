@@ -27,7 +27,7 @@ At 2020-12-10 22:16:01.938524
 
 ## Intramarket
 
-An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurrency was chosen over the stock market due to the limits on trading frequency with less than $25K in your portfolio. The goal of this algorithm is to predict with >51% a gain or loss on bitcoin within the second and then make a trade based on that data.
+An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurrency was chosen over the stock market due to the limits on trading frequency with less than $25K in your portfolio. The goal of this algorithm is to predict with a >51% gain or loss on bitcoin within the second and then make a trade based on that data.
 
 ### Charts
 Historical hourly Bitcoin prices –
