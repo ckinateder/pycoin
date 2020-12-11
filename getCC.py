@@ -1,4 +1,4 @@
-import requests, json
+import requests, json, datetime
 #using crypto compare
 
 #load api_key
@@ -17,11 +17,11 @@ def getExchanges(filename, key):
     except:
         return -1    
 
-def getPrice(currency, exchanges, key): #returns dictionary
+def getPrices(currency, exchanges, key): #returns dictionary
     summation = {}
     for exc in exchanges:
         call = 'https://min-api.cryptocompare.com/data/price?fsym='+currency+'&tsyms=USD&e='+exc+'&api_key='+cc_key
-        print('Sending '+call+'...')
+        print('Asking for',currency,'on '+exc+'...')
         try:
             recieved = requests.get(call).json()['USD']
         except:
@@ -37,6 +37,8 @@ def printj(js):
 
 if __name__ == '__main__':
     loadKey('keys/cryptocompare')
-    exchanges = ['binanceusa','bittrex','poloniex', 'kraken', 'bitfinex', 'bitstamp', 'gemini']
-    printj(getPrice('BTC',exchanges, cc_key))
+    exchanges = ['binanceusa','bittrex', 'kraken', 'bitfinex', 'bitstamp', 'gemini']
+    prices = getPrices('BTC',exchanges, cc_key)
+    print('At',datetime.datetime.now())
+    printj(prices)
     # code fees for each exchange in a json file
