@@ -21,6 +21,8 @@ def testROI():
         print('Net ROI w/ ${:d} invested => ${:.4f}'.format((i+10),data_api.calculateReturn((i+10),pair)))
     print('...Net ROI w/ ${:d} invested => ${:.4f}'.format(500,data_api.calculateReturn(500,pair)))
     print('...Net ROI w/ ${:d} invested => ${:.4f}'.format(1000,data_api.calculateReturn(1000,pair)))
+    print('...Net ROI w/ ${:d} invested => ${:.4f}'.format(3000,data_api.calculateReturn(3000,pair)))
+    print('...Net ROI w/ ${:d} invested => ${:.4f}'.format(9000,data_api.calculateReturn(9000,pair)))
 
 #note bitstamp min is $25
 

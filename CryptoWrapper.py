@@ -54,7 +54,7 @@ class CryptoWrapper:
     
     def calculateReturn(self, investment, pairs): #meant to recieve out from get hi low pair
         #use fees here not above
-        return ((investment/pairs[1])*self.fees[pairs[3]]['taker'])-((investment/pairs[0])*self.fees[pairs[2]]['taker'])
-        
+        dif = ((investment/pairs[1])*self.fees[pairs[3]]['taker']*100)-((investment/pairs[0])*self.fees[pairs[2]]['taker']*100)
+        return dif
     def printj(self, js):
         print(json.dumps(js, indent=2))
