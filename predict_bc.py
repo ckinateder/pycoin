@@ -93,7 +93,7 @@ for i in range(lookback,inputs.shape[0]):
 X_test = np.array(X_test)
 
 X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
-closing_price = model.predict(X_test)
+closing_price = model.predict(X_test) #~!!! predict
 closing_price = scaler.inverse_transform(closing_price)
 
 rms=np.sqrt(np.mean(np.power((valid-closing_price),2)))
@@ -125,7 +125,7 @@ plt.legend(['Actual', 'Predicted'], loc=4)
 plt.savefig('chart/predictions_zoomed.png')
 
 pred_slope = pd.Series(np.gradient(valid.predictions.values), valid.predictions.index, name='slope')
-Actual_slope = pd.Series(np.gradient(valid.close.values), valid.close.index, name='slope')
+actual_slope = pd.Series(np.gradient(valid.close.values), valid.close.index, name='slope')
 
 df = pd.concat([valid.predictions.rename('predictions'), pred_slope], axis=1)
 print(df)
@@ -134,7 +134,14 @@ plt.clf()
 plt.xlabel('Date')
 plt.ylabel('Change in Bitcoin Price (USD)')
 plt.title('Change in Bitcoin Price Predictions')
-plt.plot(Actual_slope)    
+plt.plot(actual_slope)    
 plt.plot(pred_slope)
 plt.legend(['Actual', 'Predicted'], loc=4)
 plt.savefig('chart/slope.png')
+
+tally = 0
+for i in range(0,actual_slope.size):
+    #print(actual_slope[i],' ',pred_slope[i])
+    if (actual_slope[i]<0 and pred_slope[i]> 0) or (actual_slope[i]>0 and pred_slope[i]< 0):
+        tally+=1
+print(tally/actual_slope.size)
