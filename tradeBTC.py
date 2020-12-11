@@ -1,9 +1,16 @@
 import requests, json, datetime
-import getCC
+import CryptoWrapper
 
-cc_key = getCC.loadKey('keys/cryptocompare')
+
+def loadKey(filename):
+    with open(filename, 'r') as key:
+        return key.read()
+
+cc_key = loadKey('keys/cryptocompare')
 exchanges = ['binanceusa','bittrex', 'kraken', 'bitfinex', 'bitstamp', 'gemini']
-prices = getCC.getPrices('BTC',exchanges, cc_key)
+data_api = CryptoWrapper.CryptoWrapper(cc_key, exchanges)
+
+prices = data_api.getPrices('BTC',exchanges)
 print('At',datetime.datetime.now())
-getCC.printj(prices)
-getCC.getLowHiPair(prices)
+data_api.printj(prices)
+data_api.getLowHiPair(prices)
