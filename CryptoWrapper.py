@@ -40,8 +40,10 @@ class CryptoWrapper:
         print('Highest =',maximum,'at $'+str(prices[maximum]))
         if fees:
             self.getFees()
-            hiwfee = float(prices[maximum]*(self.fees[maximum]['taker']/100))
-            lowwfee = float(prices[minimum]*(self.fees[minimum]['taker']/100))
+            hiwfee = prices[maximum]*(1-(self.fees[maximum]['taker']*0.01)) #is this right?
+            lowwfee = prices[minimum]*(1-(self.fees[minimum]['taker']*0.01))
+            print(prices[maximum]-prices[minimum])
+            print(hiwfee-lowwfee)
             print('Difference w/ fees => ${:.2f}'.format(hiwfee-lowwfee))
         else:
             print('Difference => ${:.2f}'.format(prices[maximum]-prices[minimum]))
@@ -54,7 +56,9 @@ class CryptoWrapper:
     
     def calculateReturn(self, investment, pairs): #meant to recieve out from get hi low pair
         #use fees here not above
-        dif = ((investment/pairs[1])*self.fees[pairs[3]]['taker']*100)-((investment/pairs[0])*self.fees[pairs[2]]['taker']*100)
-        return dif
+        alpha = investment/(pairs[1]*(1+self.fees[pairs[3]]['taker']/100)) # fraction of currency
+        dif = (pairs[1]*(1+self.fees[pairs[3]]['taker']/100))-(pairs[0]*(1+self.fees[pairs[2]]['taker']/100))
+        ret = alpha*dif
+        return ret
     def printj(self, js):
         print(json.dumps(js, indent=2))
