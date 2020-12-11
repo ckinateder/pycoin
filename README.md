@@ -14,16 +14,34 @@ Asking for BTC on kraken...
 Asking for BTC on bitfinex...
 Asking for BTC on bitstamp...
 Asking for BTC on gemini...
-At 2020-12-10 22:16:01.938524
+At 2020-12-10 23:55:15.150892
 {
-  "binanceusa": 17892.1,
-  "bittrex": 17920.99,
-  "kraken": 17893.5,
-  "bitfinex": 17906,
-  "bitstamp": 17894.92,
-  "gemini": 18265.92
+  "binanceusa": 17979.2,
+  "bittrex": 17995.99,
+  "kraken": 17980.3,
+  "bitfinex": 18008.0,
+  "bitstamp": 17984.82,
+  "gemini": 17987.93
 }
+Lowest = binanceusa at $17979.2
+Highest = bitfinex at $18008.0
+Difference w/ fees => $18.04
+
+Testing ROI
+-----------------------------
+ROI w/ $0 invested => $0.00
+ROI w/ $10 invested => $0.28
+ROI w/ $20 invested => $0.56
+ROI w/ $30 invested => $0.84
+ROI w/ $40 invested => $1.11
+ROI w/ $50 invested => $1.39
+ROI w/ $60 invested => $1.67
+ROI w/ $70 invested => $1.95
+ROI w/ $80 invested => $2.23
+ROI w/ $90 invested => $2.51
 ```
+
+Keep in mind this is meant to be traded up to every 10 seconds, so these values compounded == $$$.
 
 ## Intramarket
 

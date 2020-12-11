@@ -7,10 +7,11 @@ class CryptoWrapper:
     def __init__(self, key, exchanges):
         self.key = key
         self.exchanges = exchanges
+        self.base_url = 'https://min-api.cryptocompare.com/data/'
 
     def getExchanges(self, filename):
         try:
-            exc = requests.get('https://min-api.cryptocompare.com/data/exchanges/general?'+
+            exc = requests.get(self.base_url+'exchanges/general?'+
                                 key).json()['Data']
             with open(filename, 'w') as outfile:
                 json.dump(exc, outfile)
@@ -23,7 +24,7 @@ class CryptoWrapper:
             exchanges = self.exchanges
         summation = {}
         for exc in exchanges:
-            call = 'https://min-api.cryptocompare.com/data/price?fsym='+currency+'&tsyms=USD&e='+exc+'&api_key='+self.key
+            call = self.base_url+'price?fsym='+currency+'&tsyms=USD&e='+exc+'&api_key='+self.key
             print('Asking for',currency,'on '+exc+'...')
             try:
                 recieved = requests.get(call).json()['USD']
@@ -32,17 +33,28 @@ class CryptoWrapper:
             summation[exc] = float(recieved) # return dict
         return summation
 
-    def getLowHiPair(self, prices): #returns min and max
+    def getLowHiPair(self, prices, fees=True): #returns min and max
         minimum = min(prices, key=prices.get)
         maximum = max(prices, key=prices.get)
         print('Lowest =',minimum,'at $'+str(prices[minimum]))
         print('Highest =',maximum,'at $'+str(prices[maximum]))
-        print('Difference => ${:.2f}'.format(prices[maximum]-prices[minimum]))
-        return [minimum, maximum]
+        if fees:
+            self.getFees()
+            hiwfee = float(prices[maximum]*(self.fees[maximum]['taker']/100))
+            lowwfee = float(prices[minimum]*(self.fees[minimum]['taker']/100))
+            print('Difference w/ fees => ${:.2f}'.format(hiwfee-lowwfee))
+            return [hiwfee, lowwfee]
+        else:
+            print('Difference => ${:.2f}'.format(prices[maximum]-prices[minimum]))
+            return [minimum, maximum]
 
-    def getFees(self, prices):
+    def getFees(self):
         #open file with json of fees and return dict of fees for the prices keys
-        pass
-
+        with open('data/fees.json', 'r') as jfees:
+            self.fees = json.loads(jfees.read())
+    
+    def calculateReturn(self, investment, hi, low):
+        return (investment/hi)-(investment/low)
+        
     def printj(self, js):
         print(json.dumps(js, indent=2))
