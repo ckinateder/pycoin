@@ -14,35 +14,35 @@ Asking for BTC on kraken...
 Asking for BTC on bitfinex...
 Asking for BTC on bitstamp...
 Asking for BTC on gemini...
-At 2020-12-11 09:46:01.485048
+At 2020-12-11 10:19:47.768476
 {
-  "binanceusa": 17937.1,
-  "bittrex": 17947.77,
-  "kraken": 17947.9,
-  "bitfinex": 17979.0,
-  "bitstamp": 17938.33,
-  "gemini": 17948.88
+  "binanceusa": 18058.85,
+  "bittrex": 18073.28,
+  "kraken": 18070.1,
+  "bitfinex": 18087.0,
+  "bitstamp": 18070.29,
+  "gemini": 18074.83
 }
-Lowest = binanceusa at $17937.1
-Highest = bitfinex at $17979.0
-Difference w/ fees => $23.88
+Lowest = binanceusa at $18058.85
+Highest = bitfinex at $18087.0
+Gross difference => $28.15
 
-Testing ROI
+Testing ROI per transaction
 -----------------------------
-Net ROI w/ $10 invested => $0.0333
-Net ROI w/ $20 invested => $0.0665
-Net ROI w/ $30 invested => $0.0998
-Net ROI w/ $40 invested => $0.1330
-Net ROI w/ $50 invested => $0.1663
-Net ROI w/ $60 invested => $0.1996
-Net ROI w/ $70 invested => $0.2328
-Net ROI w/ $80 invested => $0.2661
-Net ROI w/ $90 invested => $0.2994
-Net ROI w/ $100 invested => $0.3326
-...Net ROI w/ $500 invested => $1.6631
-...Net ROI w/ $1000 invested => $3.3262
-...Net ROI w/ $3000 invested => $9.9785
-...Net ROI w/ $9000 invested => $29.9356
+Net ROI w/ $10 invested => $0.0255
+Net ROI w/ $20 invested => $0.0511
+Net ROI w/ $30 invested => $0.0766
+Net ROI w/ $40 invested => $0.1021
+Net ROI w/ $50 invested => $0.1276
+Net ROI w/ $60 invested => $0.1532
+Net ROI w/ $70 invested => $0.1787
+Net ROI w/ $80 invested => $0.2042
+Net ROI w/ $90 invested => $0.2298
+Net ROI w/ $100 invested => $0.2553
+...Net ROI w/ $500 invested => $1.2764
+...Net ROI w/ $1000 invested => $2.5528
+...Net ROI w/ $3000 invested => $7.6585
+...Net ROI w/ $9000 invested => $22.9754
 ```
 
 Keep in mind this is meant to be traded up to every 10 seconds, so these values compounded == $$$. Or, at least $.

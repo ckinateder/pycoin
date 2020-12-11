@@ -38,15 +38,12 @@ class CryptoWrapper:
         maximum = max(prices, key=prices.get)
         print('Lowest =',minimum,'at $'+str(prices[minimum]))
         print('Highest =',maximum,'at $'+str(prices[maximum]))
+        print('Gross difference => ${:.2f}'.format(prices[maximum]-prices[minimum]))
         if fees:
             self.getFees()
             hiwfee = prices[maximum]*(1-(self.fees[maximum]['taker']*0.01)) #is this right?
             lowwfee = prices[minimum]*(1-(self.fees[minimum]['taker']*0.01))
-            print(prices[maximum]-prices[minimum])
-            print(hiwfee-lowwfee)
-            print('Difference w/ fees => ${:.2f}'.format(hiwfee-lowwfee))
-        else:
-            print('Difference => ${:.2f}'.format(prices[maximum]-prices[minimum]))
+            #print('Difference w/ fees => ${:.2f}'.format(hiwfee-lowwfee))
         return [prices[minimum], prices[maximum], minimum, maximum] #maybe make into dict
 
     def getFees(self):

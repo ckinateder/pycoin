@@ -16,7 +16,7 @@ data_api.printj(prices)
 pair = data_api.getLowHiPair(prices)
 
 def testROI():
-    print('\nTesting ROI\n-----------------------------')
+    print('\nTesting ROI per transaction\n-----------------------------')
     for i in range(0,100,10):
         print('Net ROI w/ ${:d} invested => ${:.4f}'.format((i+10),data_api.calculateReturn((i+10),pair)))
     print('...Net ROI w/ ${:d} invested => ${:.4f}'.format(500,data_api.calculateReturn(500,pair)))
