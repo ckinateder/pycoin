@@ -43,18 +43,18 @@ class CryptoWrapper:
             hiwfee = float(prices[maximum]*(self.fees[maximum]['taker']/100))
             lowwfee = float(prices[minimum]*(self.fees[minimum]['taker']/100))
             print('Difference w/ fees => ${:.2f}'.format(hiwfee-lowwfee))
-            return [hiwfee, lowwfee]
         else:
             print('Difference => ${:.2f}'.format(prices[maximum]-prices[minimum]))
-            return [minimum, maximum]
+        return [prices[minimum], prices[maximum], minimum, maximum] #maybe make into dict
 
     def getFees(self):
         #open file with json of fees and return dict of fees for the prices keys
         with open('data/fees.json', 'r') as jfees:
             self.fees = json.loads(jfees.read())
     
-    def calculateReturn(self, investment, hi, low):
-        return (investment/hi)-(investment/low)
+    def calculateReturn(self, investment, pairs): #meant to recieve out from get hi low pair
+        #use fees here not above
+        return ((investment/pairs[1])*self.fees[pairs[3]]['taker'])-((investment/pairs[0])*self.fees[pairs[2]]['taker'])
         
     def printj(self, js):
         print(json.dumps(js, indent=2))
