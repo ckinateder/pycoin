@@ -42,7 +42,7 @@ plot_and_save(df['close'], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price Hi
 #this pointless ngl. don't use the function ^
 
 midpoint = 2350
-lookback = 80
+lookback = 10
 
 #creating dataframe
 data = df.sort_index(ascending=True, axis=0)
@@ -80,7 +80,7 @@ model.add(LSTM(units=65))
 model.add(Dense(1))
 
 model.compile(loss='mean_squared_error', optimizer='adam')
-model.fit(x_train, y_train, epochs=3, batch_size=1, verbose=2)
+model.fit(x_train, y_train, epochs=4, batch_size=1, verbose=2)
 
 #predicting values, using past lookback from the train data
 inputs = new_data[len(new_data) - len(valid) - lookback:].values
@@ -93,7 +93,7 @@ for i in range(lookback,inputs.shape[0]):
 X_test = np.array(X_test)
 
 X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
-closing_price = model.predict(X_test) #~!!! predict
+closing_price = model.predict(X_test) #~!!!
 closing_price = scaler.inverse_transform(closing_price)
 
 rms=np.sqrt(np.mean(np.power((valid-closing_price),2)))
