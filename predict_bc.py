@@ -42,7 +42,12 @@ plot_and_save(df['close'], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price Hi
 #this pointless ngl. don't use the function ^
 
 midpoint = 2350
-lookback = 10
+lookback = 20 # 10 is good
+epochs = 13
+units = 70 # 65 is good
+batch_size = 2 # 1 is good
+
+print('midpoint =',midpoint,'\nlookback =',lookback,'\nepochs =',epochs,'\nunits =',units,'\nbatch_size =',batch_size)
 
 #creating dataframe
 data = df.sort_index(ascending=True, axis=0)
@@ -75,12 +80,12 @@ x_train = np.reshape(x_train, (x_train.shape[0],x_train.shape[1],1))
 
 # create and fit the LSTM network
 model = Sequential()
-model.add(LSTM(units=65, return_sequences=True, input_shape=(x_train.shape[1],1))) #units=hidden state length
-model.add(LSTM(units=65))
+model.add(LSTM(units=units, return_sequences=True, input_shape=(x_train.shape[1],1))) #units=hidden state length
+model.add(LSTM(units=units))
 model.add(Dense(1))
 
 model.compile(loss='mean_squared_error', optimizer='adam')
-model.fit(x_train, y_train, epochs=4, batch_size=1, verbose=2)
+model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
 
 #predicting values, using past lookback from the train data
 inputs = new_data[len(new_data) - len(valid) - lookback:].values
@@ -97,7 +102,7 @@ closing_price = model.predict(X_test) #~!!!
 closing_price = scaler.inverse_transform(closing_price)
 
 rms=np.sqrt(np.mean(np.power((valid-closing_price),2)))
-rms
+print('RMS:',rms)
 
 #for plotting
 train = new_data[:midpoint]
@@ -144,4 +149,5 @@ for i in range(0,actual_slope.size):
     #print(actual_slope[i],' ',pred_slope[i])
     if (actual_slope[i]<0 and pred_slope[i]> 0) or (actual_slope[i]>0 and pred_slope[i]< 0):
         tally+=1
-print(tally/actual_slope.size)
+perc_correct = (1-(tally/actual_slope.size))*100
+print('Derivative correct {:.1f}%'.format(perc_correct))
