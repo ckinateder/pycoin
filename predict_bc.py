@@ -41,12 +41,13 @@ def plot_and_save(series, xlabel, ylabel, title, legend, filename):
 plot_and_save(df['close'], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
 #this pointless ngl. don't use the function ^
 
-midpoint = 2350
+midpoint = 2400
 lookback = 20 # 10 is good
 epochs = 13
 units = 70 # 65 is good
-batch_size = 2 # 1 is good
+batch_size = 2 # 2 is good
 
+#def trainModel(midpoint, lookback, epochs, units, batch_size):
 print('midpoint =',midpoint,'\nlookback =',lookback,'\nepochs =',epochs,'\nunits =',units,'\nbatch_size =',batch_size)
 
 #creating dataframe

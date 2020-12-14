@@ -13,7 +13,7 @@ import time
 import base64
 import hashlib
 import hmac
-
+import pprint
 import urllib.request as urllib2
 
 class KrakenTrader:
@@ -39,7 +39,7 @@ class KrakenTrader:
                     api_data = args[count]
                 else:
                     api_data = api_data + "&" + args[count]
-        print(args)
+        #print(args)
         if api_method in self.api_private or api_method in self.api_trading or api_method in self.api_funding:
             api_path = "/0/private/"
             api_nonce = str(int(time.time()*1000))
@@ -82,11 +82,10 @@ class KrakenTrader:
             sys.exit(1)
 
         if '"error":[]' in api_reply:
-            print(api_reply)
-            sys.exit(0)
+            #print(api_reply)
+            return api_reply
+            #sys.exit(0)
         else:
             print(api_reply)
-            sys.exit(1)
-
-kt = KrakenTrader()
-kt.main(['Ticker', 'pair=xbtusd'])
+            return api_reply
+            #sys.exit(1)
