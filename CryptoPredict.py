@@ -98,13 +98,6 @@ def trainModel(df, midpoint, lookback, epochs, units, batch_size):
 model, new_data, valid = trainModel(df, midpoint, lookback, epochs, units, batch_size)
 #for normalizing data
 
-#predicting values, using past lookback from the train data
-def normalizeInputs():
-    inputs = new_data[len(new_data) - len(valid) - lookback:].values
-    inputs = inputs.reshape(-1,1)
-    inputs = scaler.transform(inputs)
-    return inputs
-
 def predictNext(inputs):
     X_test = []
     for i in range(lookback,inputs.shape[0]):
@@ -117,29 +110,49 @@ def predictNext(inputs):
     print('RMS:',rms)
     return closing_price
 
-inputs = normalizeInputs()
+#predicting values, using past lookback from the train data
+# REPLACE?APPEND? THE 10 MOST RECENT VALUES TO THIS
+inputs = new_data[len(new_data) - len(valid) - lookback:].values
+
+def conformInputs(inputs):
+    inputs = inputs.reshape(-1,1)
+    inputs = scaler.transform(inputs)
+    return inputs
+
+inputs = conformInputs(inputs)
 next_price = predictNext(inputs)
 
 #for plotting
-train = new_data[:midpoint]
+
 valid = new_data[midpoint:]
+
 valid['predictions'] = next_price
 
-plotSave([train['close'],valid['close'],valid['predictions']], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions', ['Actual', 'Predicted'], 'predictions.png') 
+plotSave([new_data['close'],valid['predictions']], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions', ['Actual', 'Predicted'], 'predictions.png') 
 plotSave([valid[['close','predictions']]], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'predictions_zoomed.png') 
 
-pred_slope = pd.Series(np.gradient(valid.predictions.values), valid.predictions.index, name='slope')
-actual_slope = pd.Series(np.gradient(valid.close.values), valid.close.index, name='slope')
-difference = (pred_slope - actual_slope)/actual_slope # how far off
+def getSlope(nextdf):
+    return pd.Series(np.gradient(nextdf.values), nextdf.index, name='slope')
 
-plotSave([actual_slope, pred_slope], 'Date', 'Change in Bitcoin Price (USD)', 'Change in Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'slope.png') 
+valid['pred_slope'] = getSlope(valid.predictions) # try
+print(valid.tail())
+
+actual_slope = getSlope(valid.close)
+
+difference = (valid['pred_slope'] - actual_slope)/actual_slope # how far off
+
+plotSave([actual_slope, valid['pred_slope']], 'Date', 'Change in Bitcoin Price (USD)', 'Change in Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'slope.png') 
 plotSave([difference], 'Date', 'Percent Change in Bitcoin Price (USD)', 'Error Change in Bitcoin Price History + Predictions (zoomed)', ['Error'], 'error.png') 
 
+def calcError(actual_slope, pred_slope):    
+    tally = 0
+    for i in range(0,actual_slope.size):
+        #print(actual_slope[i],' ',pred_slope[i])
+        if (actual_slope[i]<0 and pred_slope[i]> 0) or (actual_slope[i]>0 and pred_slope[i]< 0):
+            tally+=1
+    perc_correct = (1-(tally/actual_slope.size))*100
 
-tally = 0
-for i in range(0,actual_slope.size):
-    #print(actual_slope[i],' ',pred_slope[i])
-    if (actual_slope[i]<0 and pred_slope[i]> 0) or (actual_slope[i]>0 and pred_slope[i]< 0):
-        tally+=1
-perc_correct = (1-(tally/actual_slope.size))*100
-print('Derivative correct {:.1f}%'.format(perc_correct))
+    print('Derivative correct {:.1f}%'.format(perc_correct))
+    return perc_correct
+
+r = calcError(valid['pred_slope'], actual_slope)    
