@@ -53,7 +53,7 @@ An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurren
 
 ### Trading Logic
 
-The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to 10, epochs between 10 and 15, and units to 65.
+The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `10`, epochs between `10` and `15`, and units to `65`.
 
 ```
 midpoint = 3880 
