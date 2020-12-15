@@ -51,6 +51,63 @@ Keep in mind this is meant to be traded up to every 10 seconds, so these values 
 
 An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurrency was chosen over the stock market due to the limits on trading frequency with less than $25K in your portfolio. The goal of this algorithm is to predict with a >51% gain or loss on bitcoin within the second and then make a trade based on that data.
 
+### Trading Logic
+
+The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to 10, epochs between 10 and 15, and units to 65.
+
+```
+midpoint = 3880 
+lookback = 10 
+epochs = 13 
+units = 65 
+batch_size = 1
+
+Epoch 1/13
+3870/3870 - 12s - loss: 0.0014
+Epoch 2/13
+3870/3870 - 13s - loss: 4.2050e-04
+Epoch 3/13
+3870/3870 - 13s - loss: 3.6717e-04
+Epoch 4/13
+3870/3870 - 13s - loss: 3.4988e-04
+Epoch 5/13
+3870/3870 - 13s - loss: 3.2393e-04
+Epoch 6/13
+3870/3870 - 15s - loss: 3.0962e-04
+Epoch 7/13
+3870/3870 - 13s - loss: 3.0347e-04
+Epoch 8/13
+3870/3870 - 14s - loss: 2.8869e-04
+Epoch 9/13
+3870/3870 - 16s - loss: 2.8900e-04
+Epoch 10/13
+3870/3870 - 18s - loss: 2.8267e-04
+Epoch 11/13
+3870/3870 - 15s - loss: 2.8532e-04
+Epoch 12/13
+3870/3870 - 15s - loss: 2.8893e-04
+Epoch 13/13
+3870/3870 - 14s - loss: 2.7734e-04
+
+RMS: 4.508937383970813
+                      predictions     slope
+date                                       
+2020-12-14 15:36:07  19190.812500  1.859375
+2020-12-14 15:36:18  19192.671875  0.936523
+2020-12-14 15:36:28  19192.685547  0.115234
+2020-12-14 15:36:38  19192.902344  0.180664
+2020-12-14 15:36:49  19193.046875  0.093750
+...                           ...       ...
+2020-12-14 18:22:14  19195.404297 -0.202148
+2020-12-14 18:22:24  19196.050781 -0.787109
+2020-12-14 18:22:35  19193.830078 -1.853516
+2020-12-14 18:22:45  19192.343750  0.299805
+2020-12-14 18:22:55  19194.429688  2.085938
+
+[970 rows x 2 columns]
+Derivative correct 81.8%
+```
+
 ### Charts
 Historical hourly Bitcoin prices –
 ![Hourly prices](chart/hourly_prices.png)
@@ -60,3 +117,5 @@ Historical prices + predicted with actual prices (zoomed in) –
 ![Zoomed Predictions](chart/predictions_zoomed.png)
 Rate of change of predicted prices –
 ![Slope](chart/slope.png)
+Perent error in rate of change of predicted prices –
+![Error](chart/error.png)

@@ -27,17 +27,18 @@ df.index = df['date']
 print(df.head())
 print(df.keys())
 
-def plot_and_save(series, xlabel, ylabel, title, legend, filename):
+def plotSave(series, xlabel, ylabel, title, legend, filename): # series must be an array
     plt.clf()
     plt.figure(figsize=(16,8))
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.title(title)    
-    plt.plot(series)
+    plt.title(title)
+    for line in series:    
+        plt.plot(line)
     plt.legend(legend, loc=4)
     plt.savefig('chart/'+filename)
 
-plot_and_save(df['close'], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
+plotSave([df['close']], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
 #this pointless ngl. don't use the function ^
 
 midpoint = int(len(df.index)*(4/5))
@@ -98,61 +99,42 @@ model, new_data, valid = trainModel(df, midpoint, lookback, epochs, units, batch
 #for normalizing data
 
 #predicting values, using past lookback from the train data
-inputs = new_data[len(new_data) - len(valid) - lookback:].values
-inputs = inputs.reshape(-1,1)
-inputs = scaler.transform(inputs)
+def normalizeInputs():
+    inputs = new_data[len(new_data) - len(valid) - lookback:].values
+    inputs = inputs.reshape(-1,1)
+    inputs = scaler.transform(inputs)
+    return inputs
 
-X_test = []
-for i in range(lookback,inputs.shape[0]):
-    X_test.append(inputs[i-lookback:i,0])
-X_test = np.array(X_test)
-X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
-closing_price = model.predict(X_test) #~!!!
-#print(X_test)
-closing_price = scaler.inverse_transform(closing_price)
+def predictNext(inputs):
+    X_test = []
+    for i in range(lookback,inputs.shape[0]):
+        X_test.append(inputs[i-lookback:i,0])
+    X_test = np.array(X_test)
+    X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
+    closing_price = model.predict(X_test) #~!!!
+    closing_price = scaler.inverse_transform(closing_price)
+    rms=np.sqrt(np.mean(np.power((valid-closing_price),2)))
+    print('RMS:',rms)
+    return closing_price
 
-rms=np.sqrt(np.mean(np.power((valid-closing_price),2)))
-print('RMS:',rms)
+inputs = normalizeInputs()
+next_price = predictNext(inputs)
 
 #for plotting
 train = new_data[:midpoint]
 valid = new_data[midpoint:]
-valid['predictions'] = closing_price
+valid['predictions'] = next_price
 
-# use standalone code because function is special enough
-plt.clf()
-plt.xlabel('Date')
-plt.ylabel('Bitcoin Price (USD)')
-plt.title('Bitcoin Price History + Predictions')    
-plt.plot(train['close'])
-plt.plot(valid['close'], label='close')
-plt.plot(valid['predictions'], label='predictions')
-plt.legend(['Actual', 'Predicted'], loc=4)
-plt.savefig('chart/predictions.png')
-
-# plot zoomed
-plt.clf()
-plt.xlabel('Date')
-plt.ylabel('Bitcoin Price (USD)')
-plt.title('Bitcoin Price Predictions (zoomed)')    
-plt.plot(valid[['close','predictions']])
-plt.legend(['Actual', 'Predicted'], loc=4)
-plt.savefig('chart/predictions_zoomed.png')
+plotSave([train['close'],valid['close'],valid['predictions']], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions', ['Actual', 'Predicted'], 'predictions.png') 
+plotSave([valid[['close','predictions']]], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'predictions_zoomed.png') 
 
 pred_slope = pd.Series(np.gradient(valid.predictions.values), valid.predictions.index, name='slope')
 actual_slope = pd.Series(np.gradient(valid.close.values), valid.close.index, name='slope')
+difference = (pred_slope - actual_slope)/actual_slope # how far off
 
-df = pd.concat([valid.predictions.rename('predictions'), pred_slope], axis=1)
-print(df)
+plotSave([actual_slope, pred_slope], 'Date', 'Change in Bitcoin Price (USD)', 'Change in Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'slope.png') 
+plotSave([difference], 'Date', 'Percent Change in Bitcoin Price (USD)', 'Error Change in Bitcoin Price History + Predictions (zoomed)', ['Error'], 'error.png') 
 
-plt.clf()
-plt.xlabel('Date')
-plt.ylabel('Change in Bitcoin Price (USD)')
-plt.title('Change in Bitcoin Price Predictions')
-plt.plot(actual_slope)    
-plt.plot(pred_slope)
-plt.legend(['Actual', 'Predicted'], loc=4)
-plt.savefig('chart/slope.png')
 
 tally = 0
 for i in range(0,actual_slope.size):
