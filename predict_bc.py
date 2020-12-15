@@ -12,21 +12,20 @@ import matplotlib.pyplot as plt
 #setting figure size
 rcParams['figure.figsize'] = 20,10
 
-#for normalizing data
 scaler = MinMaxScaler(feature_range=(0, 1))
 
 #read the file
-df = pd.read_csv('data/Binance_BTCUSDT_1h.csv')
+df = pd.read_csv('data/overnight_data.csv')
 
 #print the head
 print(df.head())
 
 #setting index as date
-df.keys()
-df['date'] = pd.to_datetime(df.date)
+df['date'] = pd.to_datetime(df.unix,unit='s') # UNITS IS IMPORTANT
 df.index = df['date']
-
 #plot
+print(df.head())
+print(df.keys())
 
 def plot_and_save(series, xlabel, ylabel, title, legend, filename):
     plt.clf()
@@ -41,52 +40,62 @@ def plot_and_save(series, xlabel, ylabel, title, legend, filename):
 plot_and_save(df['close'], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
 #this pointless ngl. don't use the function ^
 
-midpoint = 2400
-lookback = 20 # 10 is good
+midpoint = int(len(df.index)*(4/5))
+lookback = 10 # 10 is good
 epochs = 13
-units = 70 # 65 is good
-batch_size = 2 # 2 is good
+units = 65 # 65 is good
+batch_size = 1 # 2 is good
 
-#def trainModel(midpoint, lookback, epochs, units, batch_size):
 print('midpoint =',midpoint,'\nlookback =',lookback,'\nepochs =',epochs,'\nunits =',units,'\nbatch_size =',batch_size)
 
-#creating dataframe
-data = df.sort_index(ascending=True, axis=0)
-new_data = pd.DataFrame(index=range(0,len(df)),columns=['date', 'close'])
-for i in range(0,len(data)):
-    new_data['date'][i] = data['date'][i]
-    new_data['close'][i] = data['close'][i]
+def trainModel(df, midpoint, lookback, epochs, units, batch_size):
+    #creating dataframe
+    data = df.sort_index(ascending=True, axis=0)
+    new_data = pd.DataFrame(index=range(0,len(df)),columns=['date', 'close'])
+    for i in range(0,len(data)):
+        #new_data['date'][i] = data['date'][i] #convert from unix to date here
+        new_data['date'][i] = data['date'][i]
+        new_data['close'][i] = data['close'][i]
 
-#setting index
-new_data.index = new_data.date
-new_data.drop('date', axis=1, inplace=True)
+    #setting index
+    new_data.index = new_data.date
+    new_data.drop('date', axis=1, inplace=True)
+    #creating train and test sets
+    dataset = new_data.values
 
-#creating train and test sets
-dataset = new_data.values
+    train = dataset[0:midpoint,:]
+    valid = dataset[midpoint:,:]
 
-train = dataset[0:midpoint,:]
-valid = dataset[midpoint:,:]
+    #converting dataset into x_train and y_train
+    scaled_data = scaler.fit_transform(dataset)
 
-#converting dataset into x_train and y_train
-scaler = MinMaxScaler(feature_range=(0, 1))
-scaled_data = scaler.fit_transform(dataset)
+    x_train, y_train = [], []
+    for i in range(lookback,len(train)):
+        x_train.append(scaled_data[i-lookback:i,0])
+        y_train.append(scaled_data[i,0])
 
-x_train, y_train = [], []
-for i in range(lookback,len(train)):
-    x_train.append(scaled_data[i-lookback:i,0])
-    y_train.append(scaled_data[i,0])
-x_train, y_train = np.array(x_train), np.array(y_train)
+    x_train, y_train = np.array(x_train), np.array(y_train) # convert to numpy array
 
-x_train = np.reshape(x_train, (x_train.shape[0],x_train.shape[1],1))
+    '''
+    We need to convert our data into three-dimensional format. The first dimension is 
+    the number of records or rows in the dataset. The second dimension is the number 
+    of time steps which is 60 while the last dimension is the number of indicators. 
+    Since we are only using one features, the number of indicators will be one. 
+    '''
+    x_train = np.reshape(x_train, (x_train.shape[0],x_train.shape[1],1))
 
-# create and fit the LSTM network
-model = Sequential()
-model.add(LSTM(units=units, return_sequences=True, input_shape=(x_train.shape[1],1))) #units=hidden state length
-model.add(LSTM(units=units))
-model.add(Dense(1))
+    # create and fit the LSTM network
+    model = Sequential()
+    model.add(LSTM(units=units, return_sequences=True, input_shape=(x_train.shape[1],1))) #units=hidden state length
+    model.add(LSTM(units=units))
+    model.add(Dense(1))
 
-model.compile(loss='mean_squared_error', optimizer='adam')
-model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
+    model.compile(loss='mean_squared_error', optimizer='adam')
+    model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
+    return model, new_data, valid
+
+model, new_data, valid = trainModel(df, midpoint, lookback, epochs, units, batch_size)
+#for normalizing data
 
 #predicting values, using past lookback from the train data
 inputs = new_data[len(new_data) - len(valid) - lookback:].values
@@ -97,9 +106,9 @@ X_test = []
 for i in range(lookback,inputs.shape[0]):
     X_test.append(inputs[i-lookback:i,0])
 X_test = np.array(X_test)
-
 X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
 closing_price = model.predict(X_test) #~!!!
+#print(X_test)
 closing_price = scaler.inverse_transform(closing_price)
 
 rms=np.sqrt(np.mean(np.power((valid-closing_price),2)))

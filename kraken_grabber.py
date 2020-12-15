@@ -18,5 +18,5 @@ while True:
         dropped.append(i[0])
     print(dropped)
     total.append(dropped)
-    pandas.DataFrame(total).to_csv("overnight_data.csv")
+    pandas.DataFrame(total).to_csv("overnight_data.csv", mode='a', header=False)
     time.sleep(10)
