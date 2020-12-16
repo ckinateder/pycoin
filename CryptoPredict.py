@@ -22,7 +22,7 @@ print(df.head())
 
 #setting index as date
 df['date'] = pd.to_datetime(df.unix,unit='s') # UNITS IS IMPORTANT
-df.index = df['date']
+df.index = df.date
 #plot
 print(df.head())
 print(df.keys())
@@ -38,7 +38,7 @@ def plotSave(series, xlabel, ylabel, title, legend, filename): # series must be 
     plt.legend(legend, loc=4)
     plt.savefig('chart/'+filename)
 
-plotSave([df['close']], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
+plotSave([df.close], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
 #this pointless ngl. don't use the function ^
 
 midpoint = int(len(df.index)*(4/5))
@@ -123,29 +123,26 @@ inputs = conformInputs(inputs)
 next_price = predictNext(inputs)
 
 #for plotting
-
-valid = new_data[midpoint:]
-
-valid['predictions'] = next_price
+#valid = new_data[midpoint:]
 
 predictions = pd.DataFrame()
-predictions['date'] = valid.index
+predictions['date'] = new_data[midpoint:].index
 predictions.index = predictions['date']
 predictions['price'] = next_price
 
-plotSave([new_data['close'],predictions['price']], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions', ['Actual', 'Predicted'], 'predictions.png') 
-plotSave([new_data['close'], predictions['price']], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'predictions_zoomed.png') 
+plotSave([new_data.close,predictions.price], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions', ['Actual', 'Predicted'], 'predictions.png') 
+plotSave([new_data[midpoint:].close, predictions.price], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'predictions_zoomed.png') 
 
 def getSlope(nextdf):
     return pd.Series(np.gradient(nextdf.values), nextdf.index, name='slope')
 
-predictions['slope'] = getSlope(valid.predictions)
+predictions['slope'] = getSlope(predictions.price)
 
-actual_slope = getSlope(valid.close)
+actual_slope = getSlope(new_data[midpoint:].close)
 
-difference = (predictions['slope'] - actual_slope)/actual_slope # how far off
+difference = (predictions.slope - actual_slope)/actual_slope # how far off
 
-plotSave([actual_slope, predictions['slope']], 'Date', 'Change in Bitcoin Price (USD)', 'Change in Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'slope.png') 
+plotSave([actual_slope, predictions.slope], 'Date', 'Change in Bitcoin Price (USD)', 'Change in Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'slope.png') 
 plotSave([difference], 'Date', 'Percent Change in Bitcoin Price (USD)', 'Error Change in Bitcoin Price History + Predictions (zoomed)', ['Error'], 'error.png') 
 
 def calcError(actual_slope, pred_slope):    
@@ -159,4 +156,4 @@ def calcError(actual_slope, pred_slope):
     print('Derivative correct {:.1f}%'.format(perc_correct))
     return perc_correct
 
-r = calcError(predictions['slope'], actual_slope)    
+r = calcError(predictions.slope, actual_slope)    
