@@ -14,17 +14,14 @@ rcParams['figure.figsize'] = 20,10
 
 scaler = MinMaxScaler(feature_range=(0, 1))
 
+
 #read the file
-df = pd.read_csv('data/overnight_data.csv')
-
-#print the head
+df = pd.read_csv('data/overnight_data2.csv')
 print(df.head())
-
 #setting index as date
 df['date'] = pd.to_datetime(df.unix,unit='s') # UNITS IS IMPORTANT
 df.index = df.date
 #plot
-print(df.head())
 print(df.keys())
 
 def plotSave(series, xlabel, ylabel, title, legend, filename): # series must be an array
@@ -97,7 +94,7 @@ def trainModel(df, midpoint, lookback, epochs, units, batch_size):
 model, new_data = trainModel(df, midpoint, lookback, epochs, units, batch_size)
 #for normalizing data
 
-def predictNext(inputs):
+def predictNextTest(inputs):
     X_test = []
     for i in range(lookback,inputs.shape[0]):
         X_test.append(inputs[i-lookback:i,0])
@@ -107,6 +104,16 @@ def predictNext(inputs):
     closing_price = scaler.inverse_transform(closing_price)
     rms=np.sqrt(np.mean(np.power((new_data.values[midpoint:,:]-closing_price),2)))
     print('RMS:',rms)
+    return closing_price
+
+def predictNext(inputs): #withOUT validation
+    X_test = []
+    for i in range(lookback,inputs.shape[0]):
+        X_test.append(inputs[i-lookback:i,0])
+    X_test = np.array(X_test)
+    X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
+    closing_price = model.predict(X_test) #~!!!
+    closing_price = scaler.inverse_transform(closing_price)
     return closing_price
 
 def conformInputs(inputs):
@@ -119,11 +126,12 @@ def conformInputs(inputs):
 inputs = new_data[len(new_data) - len(new_data.values[midpoint:,:]) - lookback:].values # last section of test data
 
 inputs = conformInputs(inputs)
-next_price = predictNext(inputs)
+next_price = predictNextTest(inputs) # note that this has validation built in
 
 predictions = pd.DataFrame()
 predictions['date'] = new_data[midpoint:].index
 predictions.index = predictions['date']
+predictions.drop('date', axis=1, inplace=True) # drop duplicate column
 predictions['price'] = next_price
 
 def getSlope(nextdf):

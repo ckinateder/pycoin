@@ -53,59 +53,71 @@ An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurren
 
 ### Trading Logic
 
-The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `10`, epochs between `10` and `15`, and units to `65`.
+The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `10`, epochs between `10` and `15`, and units to `65`. As far as structure goes – the main class will be `CryptoTrader`. It will incorporate `CrytoPredict` and `KrakenTrader` and bring them together in one class for a fully functioned release.
 
 ```
-midpoint = 3880 
+$ python3 CryptoPredict.py
+
+         unix    close        b  ...        l        h  o
+0  1608047145  19393.6  19393.5  ...  19048.9  19551.5  1
+1  1608047155  19388.0  19385.7  ...  19048.9  19551.5  1
+2  1608047168  19387.0  19385.7  ...  19048.9  19551.5  1
+3  1608047178  19386.3  19386.2  ...  19048.9  19551.5  1
+4  1608047188  19388.0  19386.8  ...  19048.9  19551.5  1
+
+[5 rows x 10 columns]
+
+Index(['unix', 'close', 'b', 'c', 'v', 'p', 't', 'l', 'h', 'o', 'date'], dtype='object')
+
+midpoint = 2257 
 lookback = 10 
 epochs = 13 
 units = 65 
 batch_size = 1
 
 Epoch 1/13
-3870/3870 - 12s - loss: 0.0014
+2247/2247 - 8s - loss: 0.0030
 Epoch 2/13
-3870/3870 - 13s - loss: 4.2050e-04
+2247/2247 - 8s - loss: 9.6016e-04
 Epoch 3/13
-3870/3870 - 13s - loss: 3.6717e-04
+2247/2247 - 8s - loss: 6.4898e-04
 Epoch 4/13
-3870/3870 - 13s - loss: 3.4988e-04
+2247/2247 - 8s - loss: 5.7152e-04
 Epoch 5/13
-3870/3870 - 13s - loss: 3.2393e-04
+2247/2247 - 8s - loss: 6.1073e-04
 Epoch 6/13
-3870/3870 - 15s - loss: 3.0962e-04
+2247/2247 - 7s - loss: 5.5200e-04
 Epoch 7/13
-3870/3870 - 13s - loss: 3.0347e-04
+2247/2247 - 8s - loss: 5.1259e-04
 Epoch 8/13
-3870/3870 - 14s - loss: 2.8869e-04
+2247/2247 - 7s - loss: 5.1466e-04
 Epoch 9/13
-3870/3870 - 16s - loss: 2.8900e-04
+2247/2247 - 7s - loss: 5.1551e-04
 Epoch 10/13
-3870/3870 - 18s - loss: 2.8267e-04
+2247/2247 - 7s - loss: 5.3434e-04
 Epoch 11/13
-3870/3870 - 15s - loss: 2.8532e-04
+2247/2247 - 7s - loss: 4.9744e-04
 Epoch 12/13
-3870/3870 - 15s - loss: 2.8893e-04
+2247/2247 - 7s - loss: 4.7550e-04
 Epoch 13/13
-3870/3870 - 14s - loss: 2.7734e-04
-
-RMS: 4.508937383970813
-                      predictions     slope
+2247/2247 - 8s - loss: 4.8983e-04
+RMS: 3.648095667902578
+Derivative correct 83.4%
+                            price     slope
 date                                       
-2020-12-14 15:36:07  19190.812500  1.859375
-2020-12-14 15:36:18  19192.671875  0.936523
-2020-12-14 15:36:28  19192.685547  0.115234
-2020-12-14 15:36:38  19192.902344  0.180664
-2020-12-14 15:36:49  19193.046875  0.093750
+2020-12-16 01:40:18  19367.066406  0.365234
+2020-12-16 01:40:28  19367.431641 -0.062500
+2020-12-16 01:40:38  19366.941406 -3.123047
+2020-12-16 01:40:48  19361.185547 -2.279297
+2020-12-16 01:40:59  19362.382812  0.455078
 ...                           ...       ...
-2020-12-14 18:22:14  19195.404297 -0.202148
-2020-12-14 18:22:24  19196.050781 -0.787109
-2020-12-14 18:22:35  19193.830078 -1.853516
-2020-12-14 18:22:45  19192.343750  0.299805
-2020-12-14 18:22:55  19194.429688  2.085938
+2020-12-16 03:16:17  19425.212891 -0.483398
+2020-12-16 03:16:28  19424.423828  0.112305
+2020-12-16 03:16:38  19425.437500  0.433594
+2020-12-16 03:16:48  19425.291016 -2.908203
+2020-12-16 03:16:58  19419.621094 -5.669922
 
-[970 rows x 2 columns]
-Derivative correct 81.8%
+[565 rows x 2 columns]
 ```
 
 ### Charts
