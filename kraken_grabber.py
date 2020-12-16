@@ -14,11 +14,15 @@ if not os.path.isfile(filename): # only add header if file doesnt exist
     pandas.DataFrame([header]).to_csv(filename, mode='a', header=False,index=False)
 
 while True:
-    reply = json.loads(kt.main(['Ticker', 'pair=xbtusd']))['result']['XXBTZUSD']
-    dropped = list()
-    dropped.append(time.time())
-    for i in reply.values():
-        dropped.append(i[0])
-    print(dropped)
-    pandas.DataFrame([dropped]).to_csv(filename, mode='a', header=False,index=False)
-    time.sleep(10)
+    try:
+        reply = json.loads(kt.main(['Ticker', 'pair=xbtusd']))['result']['XXBTZUSD']
+        dropped = list()
+        dropped.append(time.time())
+        for i in reply.values():
+            dropped.append(i[0])
+        print(dropped)
+        pandas.DataFrame([dropped]).to_csv(filename, mode='a', header=False,index=False)
+        time.sleep(10)
+    except:
+        print('Call failed... trying again in 5')
+        time.sleep(5)
