@@ -6,6 +6,7 @@
 # Example: ./krakenapi.py Balance
 # Example: ./krakenapi.py OpenPositions
 # Example: ./krakenapi.py AddOrder pair=xxbtzusd type=buy ordertype=market volume=0.003 leverage=5
+# use MARKET ORDERS
 
 import sys
 import platform
