@@ -65,7 +65,6 @@ def trainModel(df, midpoint, lookback, epochs, units, batch_size):
     dataset = new_data.values
 
     train = dataset[0:midpoint,:]
-    valid = dataset[midpoint:,:]
 
     #converting dataset into x_train and y_train
     scaled_data = scaler.fit_transform(dataset)
@@ -93,9 +92,9 @@ def trainModel(df, midpoint, lookback, epochs, units, batch_size):
 
     model.compile(loss='mean_squared_error', optimizer='adam')
     model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
-    return model, new_data, valid
+    return model, new_data
 
-model, new_data, valid = trainModel(df, midpoint, lookback, epochs, units, batch_size)
+model, new_data = trainModel(df, midpoint, lookback, epochs, units, batch_size)
 #for normalizing data
 
 def predictNext(inputs):
@@ -106,18 +105,18 @@ def predictNext(inputs):
     X_test = np.reshape(X_test, (X_test.shape[0],X_test.shape[1],1))
     closing_price = model.predict(X_test) #~!!!
     closing_price = scaler.inverse_transform(closing_price)
-    rms=np.sqrt(np.mean(np.power((valid-closing_price),2)))
+    rms=np.sqrt(np.mean(np.power((new_data.values[midpoint:,:]-closing_price),2)))
     print('RMS:',rms)
     return closing_price
-
-#predicting values, using past lookback from the train data
-# REPLACE?APPEND? THE 10 MOST RECENT VALUES TO THIS
-inputs = new_data[len(new_data) - len(valid) - lookback:].values
 
 def conformInputs(inputs):
     inputs = inputs.reshape(-1,1)
     inputs = scaler.transform(inputs)
     return inputs
+
+#predicting values, using past lookback from the train data
+# REPLACE?APPEND? THE 10 MOST RECENT VALUES TO THIS
+inputs = new_data[len(new_data) - len(new_data.values[midpoint:,:]) - lookback:].values # last section of test data
 
 inputs = conformInputs(inputs)
 next_price = predictNext(inputs)
