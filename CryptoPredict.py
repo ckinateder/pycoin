@@ -122,28 +122,13 @@ def conformInputs(inputs):
 inputs = conformInputs(inputs)
 next_price = predictNext(inputs)
 
-#for plotting
-#valid = new_data[midpoint:]
-
 predictions = pd.DataFrame()
 predictions['date'] = new_data[midpoint:].index
 predictions.index = predictions['date']
 predictions['price'] = next_price
 
-plotSave([new_data.close,predictions.price], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions', ['Actual', 'Predicted'], 'predictions.png') 
-plotSave([new_data[midpoint:].close, predictions.price], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'predictions_zoomed.png') 
-
 def getSlope(nextdf):
     return pd.Series(np.gradient(nextdf.values), nextdf.index, name='slope')
-
-predictions['slope'] = getSlope(predictions.price)
-
-actual_slope = getSlope(new_data[midpoint:].close)
-
-difference = (predictions.slope - actual_slope)/actual_slope # how far off
-
-plotSave([actual_slope, predictions.slope], 'Date', 'Change in Bitcoin Price (USD)', 'Change in Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'slope.png') 
-plotSave([difference], 'Date', 'Percent Change in Bitcoin Price (USD)', 'Error Change in Bitcoin Price History + Predictions (zoomed)', ['Error'], 'error.png') 
 
 def calcError(actual_slope, pred_slope):    
     tally = 0
@@ -156,4 +141,17 @@ def calcError(actual_slope, pred_slope):
     print('Derivative correct {:.1f}%'.format(perc_correct))
     return perc_correct
 
-r = calcError(predictions.slope, actual_slope)    
+predictions['slope'] = getSlope(predictions.price)
+actual_slope = getSlope(new_data[midpoint:].close)
+
+r = calcError(predictions.slope, actual_slope)
+
+difference = (predictions.slope - actual_slope)/actual_slope # how far off
+
+# save graphs
+plotSave([new_data.close,predictions.price], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions', ['Actual', 'Predicted'], 'predictions.png') 
+plotSave([new_data[midpoint:].close, predictions.price], 'Date', 'Bitcoin Price (USD)', 'Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'predictions_zoomed.png') 
+plotSave([actual_slope, predictions.slope], 'Date', 'Change in Bitcoin Price (USD)', 'Change in Bitcoin Price History + Predictions (zoomed)', ['Actual', 'Predicted'], 'slope.png') 
+plotSave([difference], 'Date', 'Percent Change in Bitcoin Price (USD)', 'Error Change in Bitcoin Price History + Predictions (zoomed)', ['Error'], 'error.png') 
+
+print(predictions)
