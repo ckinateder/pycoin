@@ -5,21 +5,29 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, LSTM
+from keras.models import model_from_json
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib.pylab import rcParams
 import matplotlib.pyplot as plt
-
+import datetime
 #setting figure size
 rcParams['figure.figsize'] = 20,10
 
 scaler = MinMaxScaler(feature_range=(0, 1))
 
+models_path = 'models/'
+csvset = 'data/overnight_data2.csv'
 
 #read the file
-df = pd.read_csv('data/overnight_data2.csv')
-print(df.head())
+df = pd.read_csv(csvset)
+#headers
+important_headers = {
+   'timestamp': 'unix',
+   'price': 'a' # the column used for price
+}
+
 #setting index as date
-df['date'] = pd.to_datetime(df.unix,unit='s') # UNITS IS IMPORTANT
+df['date'] = pd.to_datetime(df[important_headers['timestamp']],unit='s') # UNITS IS IMPORTANT
 df.index = df.date
 #plot
 print(df.keys())
@@ -35,7 +43,7 @@ def plotSave(series, xlabel, ylabel, title, legend, filename): # series must be 
     plt.legend(legend, loc=4)
     plt.savefig('chart/'+filename)
 
-plotSave([df.close], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
+plotSave([df[important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
 #this pointless ngl. don't use the function ^
 
 midpoint = int(len(df.index)*(4/5))
@@ -46,6 +54,26 @@ batch_size = 1 # 2 is good
 
 print('midpoint =',midpoint,'\nlookback =',lookback,'\nepochs =',epochs,'\nunits =',units,'\nbatch_size =',batch_size)
 
+def saveModel(model, filename):
+    # serialize model to JSON
+    model_json = model.to_json()
+    with open(models_path+filename+'.json', 'w') as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights(models_path+filename+'.h5')
+    print('Saved model to disk')
+
+def loadModel(filename):
+    # load json and create model
+    json_file = open(models_path+filename+'.json', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+    # load weights into new model
+    loaded_model.load_weights(models_path+filename+'.h5')
+    print('Loaded model from disk')
+    return loaded_model
+
 def trainModel(df, midpoint, lookback, epochs, units, batch_size):
     #creating dataframe
     data = df.sort_index(ascending=True, axis=0)
@@ -53,7 +81,7 @@ def trainModel(df, midpoint, lookback, epochs, units, batch_size):
     for i in range(0,len(data)):
         #new_data['date'][i] = data['date'][i] #convert from unix to date here
         new_data['date'][i] = data['date'][i]
-        new_data['close'][i] = data['close'][i]
+        new_data['close'][i] = data[important_headers['price']][i]
 
     #setting index
     new_data.index = new_data.date
@@ -92,6 +120,7 @@ def trainModel(df, midpoint, lookback, epochs, units, batch_size):
     return model, new_data
 
 model, new_data = trainModel(df, midpoint, lookback, epochs, units, batch_size)
+saveModel(model,(str(datetime.datetime.now()))+'-model')
 #for normalizing data
 
 def predictNextTest(inputs):
@@ -106,7 +135,7 @@ def predictNextTest(inputs):
     print('RMS:',rms)
     return closing_price
 
-def predictNext(inputs): #withOUT validation
+def predictNext(inputs): #withOUT validation*
     X_test = []
     for i in range(lookback,inputs.shape[0]):
         X_test.append(inputs[i-lookback:i,0])
@@ -116,12 +145,19 @@ def predictNext(inputs): #withOUT validation
     closing_price = scaler.inverse_transform(closing_price)
     return closing_price
 
+def nextDirection(inputs): # predict direction
+    pass
+
+def decideAction(inputs): # bring it all together here
+    pass
+
 def conformInputs(inputs):
     inputs = inputs.reshape(-1,1)
     inputs = scaler.transform(inputs)
     return inputs
 
 #predicting values, using past lookback from the train data
+
 # REPLACE?APPEND? THE 10 MOST RECENT VALUES TO THIS
 inputs = new_data[len(new_data) - len(new_data.values[midpoint:,:]) - lookback:].values # last section of test data
 

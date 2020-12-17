@@ -1,6 +1,6 @@
 import kraken, json, pprint, pandas, time, os
 
-filename = 'overnight_data.csv'
+filename = 'day_data.csv'
 
 kt = kraken.KrakenTrader()
 reply = json.loads(kt.main(['Ticker', 'pair=xbtusd']))['result']['XXBTZUSD']

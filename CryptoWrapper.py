@@ -57,5 +57,20 @@ class CryptoWrapper:
         dif = (pairs[1]*(1+self.fees[pairs[3]]['taker']/100))-(pairs[0]*(1+self.fees[pairs[2]]['taker']/100))
         ret = alpha*dif
         return ret
+    
+    def getHistorical(self, howfarback, currency, exchanges=None): #test
+        if exchanges is None:
+            exchanges = self.exchanges
+        each = {}
+        for exc in exchanges:
+            call = self.base_url+'v2/histominute?fsym='+currency+'&tsym=USD&e='+exc+'&limit='+howfarback+'&api_key='+self.key 
+            print('Asking for last',howfarback,'minutes on',exc,'for',currency,'...')
+            try:
+                recieved = requests.get(call).json()
+            except:
+                recieved = 'NA'
+            each[exc] = recieved # return dict
+        return each
+
     def printj(self, js):
         print(json.dumps(js, indent=2))
