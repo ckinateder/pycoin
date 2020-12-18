@@ -14,9 +14,10 @@ import datetime
 
 class CryptoPredictor:
 
-    def __init__(self, lookback=10,epochs=15,units=65,batch_size=1, important_headers={'timestamp': 'time','price': 'close'}, datafile=''):
+    def __init__(self, lookback=10,epochs=15,units=65,batch_size=1, important_headers={'timestamp': 'time','price': 'close'}, datafile='', cutpoint=2000):
         self.models_path = 'models/'
         self.csvset = datafile
+        self.cutpoint = cutpoint # only use last x datapoints
         # define headers
         self.important_headers = important_headers
         self.lookback = lookback # 10 is good
@@ -41,10 +42,14 @@ class CryptoPredictor:
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title(title)
+        textstr = 'Size =',self.cutpoint,'\nLookback =',self.lookback,'\nEpochs =',self.epochs,'\nUnits =',self.units
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.95, textstr, fontsize=12,verticalalignment='top', bbox=props)
         for line in series:    
             plt.plot(line)
         plt.legend(legend, loc=4)
         plt.savefig('chart/'+filename)
+        print('Saved plot '+title)
 
     def saveModel(self, model, filename):
         # serialize model to JSON
@@ -121,7 +126,7 @@ class CryptoPredictor:
         closing_price = model.predict(X_test) #~!!!
         closing_price = self.scaler.inverse_transform(closing_price)
         #rms=np.sqrt(np.mean(np.power((self.new_data.values[self.midpoint:,:]-closing_price),2)))
-        print('RMS:',rms)
+        #print('RMS:',rms)
         return closing_price
 
     def predictNext(self, inputs, model): #withOUT validation*
@@ -162,11 +167,13 @@ class CryptoPredictor:
         return perc_correct
 
     ### run code
-    def main(self):
+    def main(self): # move this to crptotrader class and move the logic there too possibly
         df = self.loadCSV(self.csvset)
+        df = df.iloc[(len(df.index)-self.cutpoint):]
+
         self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
 
-        self.midpoint = int(len(df.index)*(4/5)) # have to set after df init
+        self.midpoint = int(len(df.index)*(3/4)) # have to set after df init
 
         print('midpoint =',self.midpoint,'\nlookback =',self.lookback,'\nepochs =',self.epochs,'\nunits =',self.units,'\nbatch_size =',self.batch_size)
 
@@ -190,7 +197,7 @@ class CryptoPredictor:
         predictions['slope'] = self.getSlope(predictions.price)
         actual_slope = self.getSlope(new_data[self.midpoint:].close)
 
-        print(predictions.slope[0],actual_slope[0])
+        #print(predictions.slope[0],actual_slope[0])
 
         r = self.calcError(predictions.slope, actual_slope)
         difference = (predictions.slope - actual_slope)/actual_slope # how far off
