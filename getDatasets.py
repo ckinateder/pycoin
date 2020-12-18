@@ -7,7 +7,7 @@ def loadKey(filename):
 
 cc_key = loadKey('keys/cryptocompare')
 exchanges = ['kraken']
-filename = 'data/last2000mins.csv'
+filename = 'data/last1000mins.csv'
 
 with open(filename, mode='w') as datafile:
     DataPi = CryptoWrapper.CryptoWrapper(cc_key, exchanges)

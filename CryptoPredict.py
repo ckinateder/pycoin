@@ -16,21 +16,22 @@ rcParams['figure.figsize'] = 20,10
 scaler = MinMaxScaler(feature_range=(0, 1))
 
 models_path = 'models/'
-csvset = 'data/overnight_data2.csv'
+csvset = 'data/last1000mins.csv'
 
-#read the file
-df = pd.read_csv(csvset)
-#headers
+# define headers
 important_headers = {
-   'timestamp': 'unix',
-   'price': 'a' # the column used for price
+'timestamp': 'time',
+'price': 'close' # the column used for price
 }
 
-#setting index as date
-df['date'] = pd.to_datetime(df[important_headers['timestamp']],unit='s') # UNITS IS IMPORTANT
-df.index = df.date
-#plot
-print(df.keys())
+def loadCSV(filename):
+    #read the file
+    df = pd.read_csv(csvset)
+    #setting index as date
+    df['date'] = pd.to_datetime(df[important_headers['timestamp']],unit='s') # UNITS IS IMPORTANT
+    df.index = df.date
+    #plot
+    return df
 
 def plotSave(series, xlabel, ylabel, title, legend, filename): # series must be an array
     plt.clf()
@@ -43,14 +44,16 @@ def plotSave(series, xlabel, ylabel, title, legend, filename): # series must be 
     plt.legend(legend, loc=4)
     plt.savefig('chart/'+filename)
 
-plotSave([df[important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
-#this pointless ngl. don't use the function ^
+df = loadCSV(csvset)
 
 midpoint = int(len(df.index)*(4/5))
-lookback = 10 # 10 is good
-epochs = 13
+lookback = 25 # 10 is good
+epochs = 15
 units = 65 # 65 is good
 batch_size = 1 # 2 is good
+
+plotSave([df[important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
+#this pointless ngl. don't use the function ^
 
 print('midpoint =',midpoint,'\nlookback =',lookback,'\nepochs =',epochs,'\nunits =',units,'\nbatch_size =',batch_size)
 
@@ -145,16 +148,18 @@ def predictNext(inputs): #withOUT validation*
     closing_price = scaler.inverse_transform(closing_price)
     return closing_price
 
-def nextDirection(inputs): # predict direction
-    pass
-
-def decideAction(inputs): # bring it all together here
-    pass
-
 def conformInputs(inputs):
     inputs = inputs.reshape(-1,1)
     inputs = scaler.transform(inputs)
     return inputs
+
+def nextDirection(inputs): # predict direction
+    pass
+
+def decideAction(inputs): # bring it all together here
+    # compare current slope to last n slopes
+    # with that info decide to buy or sell - buy if bottoming, sell if peaking
+    pass
 
 #predicting values, using past lookback from the train data
 
@@ -186,6 +191,8 @@ def calcError(actual_slope, pred_slope):
 
 predictions['slope'] = getSlope(predictions.price)
 actual_slope = getSlope(new_data[midpoint:].close)
+
+print(predictions.slope[0],actual_slope[0])
 
 r = calcError(predictions.slope, actual_slope)
 
