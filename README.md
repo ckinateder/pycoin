@@ -11,68 +11,62 @@ An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurren
 The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `10`, epochs between `10` and `15`, and units to `65`. As far as structure goes – the main class will be `CryptoTrader`. It will incorporate `CrytoPredict` and `KrakenTrader` and bring them together in one class for a fully functioned release.
 
 ```
-$ python3 CryptoPredict.py
+$ python3 CryptoTrader.py
 
-         unix    close        b  ...        l        h  o
-0  1608047145  19393.6  19393.5  ...  19048.9  19551.5  1
-1  1608047155  19388.0  19385.7  ...  19048.9  19551.5  1
-2  1608047168  19387.0  19385.7  ...  19048.9  19551.5  1
-3  1608047178  19386.3  19386.2  ...  19048.9  19551.5  1
-4  1608047188  19388.0  19386.8  ...  19048.9  19551.5  1
-
-[5 rows x 10 columns]
-
-Index(['unix', 'close', 'b', 'c', 'v', 'p', 't', 'l', 'h', 'o', 'date'], dtype='object')
-
-midpoint = 2257 
-lookback = 10 
-epochs = 13 
-units = 65 
+midpoint = 2973 
+lookback = 15 
+epochs = 15 
+units = 70 
 batch_size = 1
 
-Epoch 1/13
-2247/2247 - 8s - loss: 0.0030
-Epoch 2/13
-2247/2247 - 8s - loss: 9.6016e-04
-Epoch 3/13
-2247/2247 - 8s - loss: 6.4898e-04
-Epoch 4/13
-2247/2247 - 8s - loss: 5.7152e-04
-Epoch 5/13
-2247/2247 - 8s - loss: 6.1073e-04
-Epoch 6/13
-2247/2247 - 7s - loss: 5.5200e-04
-Epoch 7/13
-2247/2247 - 8s - loss: 5.1259e-04
-Epoch 8/13
-2247/2247 - 7s - loss: 5.1466e-04
-Epoch 9/13
-2247/2247 - 7s - loss: 5.1551e-04
-Epoch 10/13
-2247/2247 - 7s - loss: 5.3434e-04
-Epoch 11/13
-2247/2247 - 7s - loss: 4.9744e-04
-Epoch 12/13
-2247/2247 - 7s - loss: 4.7550e-04
-Epoch 13/13
-2247/2247 - 8s - loss: 4.8983e-04
-RMS: 3.648095667902578
-Derivative correct 83.4%
-                            price     slope
-date                                       
-2020-12-16 01:40:18  19367.066406  0.365234
-2020-12-16 01:40:28  19367.431641 -0.062500
-2020-12-16 01:40:38  19366.941406 -3.123047
-2020-12-16 01:40:48  19361.185547 -2.279297
-2020-12-16 01:40:59  19362.382812  0.455078
-...                           ...       ...
-2020-12-16 03:16:17  19425.212891 -0.483398
-2020-12-16 03:16:28  19424.423828  0.112305
-2020-12-16 03:16:38  19425.437500  0.433594
-2020-12-16 03:16:48  19425.291016 -2.908203
-2020-12-16 03:16:58  19419.621094 -5.669922
+Epoch 1/15
+2958/2958 - 14s - loss: 0.0016
+Epoch 2/15
+2958/2958 - 13s - loss: 3.7860e-04
+Epoch 3/15
+2958/2958 - 13s - loss: 2.5028e-04
+Epoch 4/15
+2958/2958 - 13s - loss: 2.1414e-04
+Epoch 5/15
+2958/2958 - 13s - loss: 1.8036e-04
+Epoch 6/15
+2958/2958 - 13s - loss: 1.8532e-04
+Epoch 7/15
+2958/2958 - 12s - loss: 1.7738e-04
+Epoch 8/15
+2958/2958 - 12s - loss: 1.6096e-04
+Epoch 9/15
+2958/2958 - 13s - loss: 1.7846e-04
+Epoch 10/15
+2958/2958 - 13s - loss: 1.6599e-04
+Epoch 11/15
+2958/2958 - 13s - loss: 1.4877e-04
+Epoch 12/15
+2958/2958 - 13s - loss: 1.4937e-04
+Epoch 13/15
+2958/2958 - 13s - loss: 1.4104e-04
+Epoch 14/15
+2958/2958 - 13s - loss: 1.4720e-04
+Epoch 15/15
+2958/2958 - 12s - loss: 1.3790e-04
+Saved model to disk
+-0.6933594 -0.7000000000007276
+Derivative correct 76.3%
+                                      price     slope
+date                                                 
+2020-12-18 13:43:18.270774364  22824.494141 -0.693359
+2020-12-18 13:43:28.515594006  22823.800781 -0.701172
+2020-12-18 13:43:38.794413090  22823.091797 -0.593750
+2020-12-18 13:43:49.047344685  22822.613281 -0.541992
+2020-12-18 13:43:59.322089195  22822.007812 -0.284180
+...                                     ...       ...
+2020-12-18 15:49:37.415970564  22470.824219  3.090820
+2020-12-18 15:49:47.644010067  22483.535156 -0.080078
+2020-12-18 15:49:57.894225121  22470.664062 -3.223633
+2020-12-18 15:50:08.085751534  22477.087891  1.916016
+2020-12-18 15:50:18.379809141  22474.496094 -2.591797
 
-[565 rows x 2 columns]
+[744 rows x 2 columns]
 ```
 
 ### Charts

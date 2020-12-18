@@ -14,14 +14,11 @@ import datetime
 
 class CryptoPredictor:
 
-    def __init__(self, lookback=20,epochs=15,units=80,batch_size=1, setp=''):
+    def __init__(self, lookback=10,epochs=15,units=65,batch_size=1, important_headers={'timestamp': 'time','price': 'close'}, datafile=''):
         self.models_path = 'models/'
-        self.csvset = setp
+        self.csvset = datafile
         # define headers
-        self.important_headers = {
-        'timestamp': 'time',
-        'price': 'close' # the column used for price
-        }
+        self.important_headers = important_headers
         self.lookback = lookback # 10 is good
         self.epochs = epochs
         self.units = units # 65 is good
@@ -169,7 +166,7 @@ class CryptoPredictor:
         df = self.loadCSV(self.csvset)
         self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
 
-        self.midpoint = int(len(df.index)*(9/10)) # have to set after df init
+        self.midpoint = int(len(df.index)*(4/5)) # have to set after df init
 
         print('midpoint =',self.midpoint,'\nlookback =',self.lookback,'\nepochs =',self.epochs,'\nunits =',self.units,'\nbatch_size =',self.batch_size)
 
