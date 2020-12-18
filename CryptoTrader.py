@@ -1,7 +1,5 @@
-import requests, json, datetime
+import requests, json, datetime, CryptoPredict
 #using crypto compare
 
-#load api_key
-# print(data_api.getHistorical('10','BTC', ['kraken']))
-class CryptoTrader:
-    pass
+cp = CryptoPredict.CryptoPredictor(setp='data/last1000mins.csv')
+cp.main()

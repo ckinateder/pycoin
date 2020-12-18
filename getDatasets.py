@@ -11,7 +11,7 @@ filename = 'data/last1000mins.csv'
 
 with open(filename, mode='w') as datafile:
     DataPi = CryptoWrapper.CryptoWrapper(cc_key, exchanges)
-    recall = (DataPi.getHistorical('2000','BTC', ['kraken']))['kraken']['Data']['Data']
+    recall = (DataPi.getHistorical('2000','ETH', ['kraken']))['kraken']['Data']['Data']
 
     write = csv.writer(datafile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     print('Writing header...')
