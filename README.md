@@ -8,68 +8,58 @@ An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurren
 
 ### Trading Logic
 
-The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `1`, epochs between `10` and `15`, and units around `256`. According to graph error, it looks as though the model needs to be retrained every hour at minimum. As far as structure goes – the main class will be `CryptoTrader`. It will incorporate `CrytoPredict` and `KrakenTrader` and bring them together in one class for a fully functioned release.
+The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `1`, epochs between `10` and `15`, and units around `256`. I also found that the size of the rolling dataset works best between `1800` to `2400` datapoints. According to graph error, it looks as though the model needs to be retrained every half an hour to an hour at minimum. As far as structure goes – the main class will be `CryptoTrader`. It will incorporate `CrytoPredictor` and `KrakenTrader` and bring them together in one class for a fully functioned release.
 
 ```
 $ python3 CryptoTrader.py
 
+Index(['unix', 'a', 'b', 'c', 'v', 'p', 't', 'l', 'h', 'o', 'date'], dtype='object')
 Saved plot Hourly Close Price History
-midpoint = 1800 
 lookback = 1 
 epochs = 13 
 units = 256 
 batch_size = 1
 
 Epoch 1/13
-1799/1799 - 5s - loss: 0.0038
+2399/2399 - 7s - loss: 0.0025
 Epoch 2/13
-1799/1799 - 5s - loss: 4.0020e-04
+2399/2399 - 7s - loss: 3.5912e-04
 Epoch 3/13
-1799/1799 - 4s - loss: 4.8217e-04
+2399/2399 - 7s - loss: 3.5139e-04
 Epoch 4/13
-1799/1799 - 5s - loss: 4.3370e-04
+2399/2399 - 7s - loss: 2.8795e-04
 Epoch 5/13
-1799/1799 - 5s - loss: 3.8176e-04
+2399/2399 - 7s - loss: 2.9999e-04
 Epoch 6/13
-1799/1799 - 5s - loss: 4.0487e-04
+2399/2399 - 7s - loss: 2.8704e-04
 Epoch 7/13
-1799/1799 - 5s - loss: 4.2265e-04
+2399/2399 - 7s - loss: 2.8031e-04
 Epoch 8/13
-1799/1799 - 5s - loss: 3.9150e-04
+2399/2399 - 7s - loss: 2.6845e-04
 Epoch 9/13
-1799/1799 - 5s - loss: 3.7182e-04
+2399/2399 - 7s - loss: 2.5197e-04
 Epoch 10/13
-1799/1799 - 5s - loss: 3.4439e-04
+2399/2399 - 7s - loss: 2.5738e-04
 Epoch 11/13
-1799/1799 - 5s - loss: 3.4022e-04
+2399/2399 - 7s - loss: 2.7071e-04
 Epoch 12/13
-1799/1799 - 5s - loss: 3.1977e-04
+2399/2399 - 7s - loss: 2.4548e-04
 Epoch 13/13
-1799/1799 - 5s - loss: 3.3645e-04
-Saved model to disk
-Derivative correct 84.2%
-Saved plot Bitcoin Price History + Predictions
-Saved plot Bitcoin Price History + Predictions (zoomed)
-Saved plot Change in Bitcoin Price History + Predictions (zoomed)
-Saved plot Error Change in Bitcoin Price History + Predictions (zoomed)
-                                      price     slope
-date                                                 
-2020-12-18 17:41:03.557963610  22766.437500  0.000000
-2020-12-18 17:41:13.855086803  22766.437500  0.000000
-2020-12-18 17:41:24.052181244  22766.437500  0.000000
-2020-12-18 17:41:34.330092907  22766.437500  0.000000
-2020-12-18 17:41:44.845845222  22766.437500 -1.244141
-...                                     ...       ...
-2020-12-18 19:22:50.398678541  22755.033203  0.000000
-2020-12-18 19:23:00.681419611  22755.033203  0.000000
-2020-12-18 19:23:10.906343222  22755.033203  0.000000
-2020-12-18 19:23:21.398822546  22755.033203  0.000000
-2020-12-18 19:23:31.702734232  22755.033203  0.000000
+2399/2399 - 6s - loss: 2.5116e-04
+------
+n-1: 23161.9 (actual)
+n: 23161.9 (actual)
+n+1: 23157.234375 (predicted)
 
-[600 rows x 2 columns]
+actual (previous) d/dx: 0.00
+predicted (next) d/dx: -0.47
+
+predicted action: hold
+------
 ```
 
 ### Charts
+Note that these are just samples from my tests and may not be the direct result of the ouptput immediately above.<br>
 Historical hourly Bitcoin prices –
 ![Hourly prices](chart/hourly_prices.png)
 Historical prices + predicted with actual prices –

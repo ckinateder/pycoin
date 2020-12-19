@@ -36,6 +36,11 @@ class CryptoPredictor:
         #plot
         return df
 
+    def createFrame(self):
+        df = self.loadCSV(self.csvset)
+        df = df.iloc[(len(df.index)-self.cutpoint):]
+        return df
+
     def plotSave(self, series, xlabel, ylabel, title, legend, filename): # series must be an array
         plt.clf()
         plt.figure(figsize=(16,8))
@@ -71,7 +76,7 @@ class CryptoPredictor:
         print('Loaded model from disk')
         return loaded_model
 
-    def trainModel(self, df, midpoint, lookback, epochs, units, batch_size):
+    def trainModelForTest(self, df, midpoint, lookback, epochs, units, batch_size):
         #creating dataframe
         data = df.sort_index(ascending=True, axis=0)
         new_data = pd.DataFrame(index=range(0,len(df)),columns=['date', 'close'])
@@ -86,7 +91,7 @@ class CryptoPredictor:
         #creating train and test sets
         dataset = new_data.values
 
-        train = dataset[0:midpoint,:]
+        train = dataset[0:midpoint,:] # will be changed to the whole dataset
 
         #converting dataset into x_train and y_train
         scaled_data = self.scaler.fit_transform(dataset)
@@ -115,7 +120,51 @@ class CryptoPredictor:
         model.compile(loss='mean_squared_error', optimizer='adam')
         model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
         return model, new_data
-    #for normalizing data
+    
+    def trainModel(self, df, lookback, epochs, units, batch_size):
+        #creating dataframe
+        data = df.sort_index(ascending=True, axis=0)
+        new_data = pd.DataFrame(index=range(0,len(df)),columns=['date', 'close'])
+        for i in range(0,len(data)):
+            #new_data['date'][i] = data['date'][i] #convert from unix to date here
+            new_data['date'][i] = data['date'][i]
+            new_data['close'][i] = data[self.important_headers['price']][i]
+        #setting index
+        new_data.index = new_data.date
+        new_data.drop('date', axis=1, inplace=True)
+        #creating train and test sets
+        dataset = new_data.values
+        #converting dataset into x_train and y_train
+        scaled_data = self.scaler.fit_transform(dataset)
+
+        x_train, y_train = [], []
+        for i in range(lookback,len(dataset)):
+            x_train.append(scaled_data[i-lookback:i,0])
+            y_train.append(scaled_data[i,0])
+
+        x_train, y_train = np.array(x_train), np.array(y_train) # convert to numpy array
+        x_train = np.reshape(x_train, (x_train.shape[0],x_train.shape[1],1))
+
+        # create and fit the LSTM network
+        model = Sequential()
+        model.add(LSTM(units=units, return_sequences=True, input_shape=(x_train.shape[1],1))) #units=hidden state length
+        model.add(LSTM(units=units))
+        model.add(Dense(1))
+
+        model.compile(loss='mean_squared_error', optimizer='adam')
+        model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
+        return model, new_data
+
+    def retrainModel(self, data):
+        df = self.loadCSV(data) # maybe not?
+        df = df.iloc[(len(df.index)-self.cutpoint):]
+
+        self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
+
+        print('lookback =',self.lookback,'\nepochs =',self.epochs,'\nunits =',self.units,'\nbatch_size =',self.batch_size)
+
+        model, new_data = self.trainModel(df, self.lookback, self.epochs, self.units, self.batch_size)
+        return model, new_data
 
     def predictNextTest(self, inputs, model):
         X_test = []
@@ -129,7 +178,8 @@ class CryptoPredictor:
         #print('RMS:',rms)
         return closing_price
 
-    def predictNext(self, inputs, model): #withOUT validation*
+    def predictNextValue(self, inputs, model): #withOUT validation*
+        # inputs should be current value and value before
         X_test = []
         for i in range(self.lookback,inputs.shape[0]):
             X_test.append(inputs[i-self.lookback:i,0])
@@ -144,16 +194,24 @@ class CryptoPredictor:
         inputs = self.scaler.transform(inputs)
         return inputs
 
-    def nextDirection(self, inputs): # predict direction
-        pass
-
-    def decideAction(self, inputs): # bring it all together here
+    def decideAction(self, pair): # bring it all together here
+        # pair is derivative pair [n-1, n]
         # compare current slope to last n slopes
         # with that info decide to buy or sell - buy if bottoming, sell if peaking
-        pass
+        alpha = 0 # play with
+        if pair[0] < alpha and pair[1] > alpha:
+            return 'buy'
+        elif pair[0] > alpha and pair[1] < alpha:
+            return 'sell'
+        else:
+            return 'hold'
 
-    def getSlope(self, nextdf):
+    def getGradient(self, nextdf):
         return pd.Series(np.gradient(nextdf.values), nextdf.index, name='slope')
+
+    def getSlope(self, pair):
+        constant = 10
+        return (pair[1]-pair[0])/constant
 
     def calcError(self, actual_slope, pred_slope):    
         tally = 0
@@ -167,9 +225,33 @@ class CryptoPredictor:
         return perc_correct
 
     ### run code
-    def main(self): # move this to crptotrader class and move the logic there too possibly
-        df = self.loadCSV(self.csvset)
-        df = df.iloc[(len(df.index)-self.cutpoint):]
+    def testRealTime(self):
+        '''
+        - get current(next) value and last value from csv file
+        - get current(next) derivative and last derivative
+        - load model
+        - predict next value
+        - retrain every 15 mins
+        '''
+        df = self.createFrame()
+        lastv = df[self.important_headers['price']][len(df.index)-2]
+        currentv = df[self.important_headers['price']][len(df.index)-1]
+
+        latest_model, frame = self.retrainModel(self.csvset)
+
+        inputs = self.conformInputs(np.array([lastv, currentv]))
+        nextv = self.predictNextValue(inputs,latest_model)[0][0]
+        raw_vals_list = np.array([lastv, currentv, nextv])
+
+        print('------\nn-1:',raw_vals_list[0],'(actual)\nn:',raw_vals_list[1],'(actual)\nn+1:',raw_vals_list[2], '(predicted)')
+        #get derivatives
+        prev = self.getSlope(raw_vals_list[0:2])
+        forw = self.getSlope(raw_vals_list[1:])
+        print('\nactual (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(prev,forw))
+        print('\npredicted action:',self.decideAction([prev, forw]),'\n------')
+
+    def testModel(self): # move this to crptotrader class and move the logic there too possibly
+        df = self.createFrame()
 
         self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
 
@@ -177,7 +259,7 @@ class CryptoPredictor:
 
         print('midpoint =',self.midpoint,'\nlookback =',self.lookback,'\nepochs =',self.epochs,'\nunits =',self.units,'\nbatch_size =',self.batch_size)
 
-        model, new_data = self.trainModel(df, self.midpoint, self.lookback, self.epochs, self.units, self.batch_size)
+        model, new_data = self.trainModelForTest(df, self.midpoint, self.lookback, self.epochs, self.units, self.batch_size)
         self.saveModel(model,(str(datetime.datetime.now()))+'-model')
 
         #predicting values, using past lookback from the train data
@@ -186,7 +268,7 @@ class CryptoPredictor:
         inputs = new_data[len(new_data) - len(new_data.values[self.midpoint:,:]) - self.lookback:].values # last section of test data
 
         inputs = self.conformInputs(inputs)
-        next_price = self.predictNext(inputs, model) # note that this has validation built in
+        next_price = self.predictNextTest(inputs, model) # note that this has validation built in
 
         predictions = pd.DataFrame()
         predictions['date'] = new_data[self.midpoint:].index
@@ -194,8 +276,8 @@ class CryptoPredictor:
         predictions.drop('date', axis=1, inplace=True) # drop duplicate column
         predictions['price'] = next_price
 
-        predictions['slope'] = self.getSlope(predictions.price)
-        actual_slope = self.getSlope(new_data[self.midpoint:].close)
+        predictions['slope'] = self.getGradient(predictions.price)
+        actual_slope = self.getGradient(new_data[self.midpoint:].close)
 
         #print(predictions.slope[0],actual_slope[0])
 
