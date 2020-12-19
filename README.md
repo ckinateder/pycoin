@@ -13,49 +13,46 @@ The trading logic used for this is based on the derivative of the predictions gr
 ```
 $ python3 CryptoTrader.py
 
-Index(['unix', 'a', 'b', 'c', 'v', 'p', 't', 'l', 'h', 'o', 'date'], dtype='object')
-Saved plot Hourly Close Price History
 lookback = 1 
 epochs = 13 
 units = 256 
 batch_size = 1
 
 Epoch 1/13
-2399/2399 - 7s - loss: 0.0025
+2399/2399 - 7s - loss: 0.0027
 Epoch 2/13
-2399/2399 - 7s - loss: 3.5912e-04
+2399/2399 - 6s - loss: 4.5839e-04
 Epoch 3/13
-2399/2399 - 7s - loss: 3.5139e-04
+2399/2399 - 7s - loss: 4.6787e-04
 Epoch 4/13
-2399/2399 - 7s - loss: 2.8795e-04
+2399/2399 - 6s - loss: 3.8366e-04
 Epoch 5/13
-2399/2399 - 7s - loss: 2.9999e-04
+2399/2399 - 7s - loss: 3.7031e-04
 Epoch 6/13
-2399/2399 - 7s - loss: 2.8704e-04
+2399/2399 - 6s - loss: 4.1215e-04
 Epoch 7/13
-2399/2399 - 7s - loss: 2.8031e-04
+2399/2399 - 6s - loss: 3.5552e-04
 Epoch 8/13
-2399/2399 - 7s - loss: 2.6845e-04
+2399/2399 - 6s - loss: 3.5895e-04
 Epoch 9/13
-2399/2399 - 7s - loss: 2.5197e-04
+2399/2399 - 6s - loss: 3.5663e-04
 Epoch 10/13
-2399/2399 - 7s - loss: 2.5738e-04
+2399/2399 - 7s - loss: 3.4529e-04
 Epoch 11/13
-2399/2399 - 7s - loss: 2.7071e-04
+2399/2399 - 6s - loss: 3.3959e-04
 Epoch 12/13
-2399/2399 - 7s - loss: 2.4548e-04
+2399/2399 - 6s - loss: 3.2086e-04
 Epoch 13/13
-2399/2399 - 6s - loss: 2.5116e-04
+2399/2399 - 6s - loss: 3.2288e-04
 ------
-n-1: 23161.9 (actual)
-n: 23161.9 (actual)
-n+1: 23157.234375 (predicted)
+n-1: 23171.1 (actual)
+n: 23198.4 (actual)
+n+1: 23176.26171875 (predicted)
 
-actual (previous) d/dx: 0.00
-predicted (next) d/dx: -0.47
+actual (previous) d/dx: 2.73
+predicted (next) d/dx: -2.21
 
-predicted action: hold
-------
+predicted action: sell 
 ```
 
 ### Charts

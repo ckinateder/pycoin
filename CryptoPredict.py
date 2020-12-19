@@ -159,7 +159,7 @@ class CryptoPredictor:
         df = self.loadCSV(data) # maybe not?
         df = df.iloc[(len(df.index)-self.cutpoint):]
 
-        self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
+        #self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png') 
 
         print('lookback =',self.lookback,'\nepochs =',self.epochs,'\nunits =',self.units,'\nbatch_size =',self.batch_size)
 
@@ -253,7 +253,7 @@ class CryptoPredictor:
     def testModel(self): # move this to crptotrader class and move the logic there too possibly
         df = self.createFrame()
 
-        self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Hourly Close Price History', ['Prices'], 'hourly_prices.png') 
+        self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png') 
 
         self.midpoint = int(len(df.index)*(3/4)) # have to set after df init
 
