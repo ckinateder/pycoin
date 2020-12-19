@@ -164,7 +164,8 @@ class CryptoPredictor:
         print('lookback =',self.lookback,'\nepochs =',self.epochs,'\nunits =',self.units,'\nbatch_size =',self.batch_size)
 
         model, new_data = self.trainModel(df, self.lookback, self.epochs, self.units, self.batch_size)
-        return model, new_data
+        self.saveModel(model, 'current-model')
+        return model
 
     def predictNextTest(self, inputs, model):
         X_test = []
@@ -198,7 +199,7 @@ class CryptoPredictor:
         # pair is derivative pair [n-1, n]
         # compare current slope to last n slopes
         # with that info decide to buy or sell - buy if bottoming, sell if peaking
-        alpha = 0 # play with
+        alpha = 0.001 # play with
         if pair[0] < alpha and pair[1] > alpha:
             return 'buy'
         elif pair[0] > alpha and pair[1] < alpha:
@@ -227,27 +228,31 @@ class CryptoPredictor:
     ### run code
     def testRealTime(self):
         '''
-        - get current(next) value and last value from csv file
-        - get current(next) derivative and last derivative
-        - load model
-        - predict next value
-        - retrain every 15 mins
+        - turn into handleNext
+        - write function in CryptoTrader to deal with getting the new data, retraining every fifteen minutes, even acting on the trade flag?
         '''
         df = self.createFrame()
+        lastv3 = df[self.important_headers['price']][len(df.index)-4]
+        lastv2 = df[self.important_headers['price']][len(df.index)-3]
         lastv = df[self.important_headers['price']][len(df.index)-2]
         currentv = df[self.important_headers['price']][len(df.index)-1]
 
-        latest_model, frame = self.retrainModel(self.csvset)
+        latest_model = self.retrainModel(self.csvset)
 
         inputs = self.conformInputs(np.array([lastv, currentv]))
-        nextv = self.predictNextValue(inputs,latest_model)[0][0]
-        raw_vals_list = np.array([lastv, currentv, nextv])
+        nextp = self.predictNextValue(inputs,latest_model)[0][0]
+        inputs = self.conformInputs(np.array([lastv2, lastv])) # get predicted current value to use for derivative 
+        currentp = self.predictNextValue(inputs,latest_model)[0][0]
+        inputs = self.conformInputs(np.array([lastv3, lastv2])) # get predicted last value to use for derivative 
+        previousp = self.predictNextValue(inputs,latest_model)[0][0]
 
-        print('------\nn-1:',raw_vals_list[0],'(actual)\nn:',raw_vals_list[1],'(actual)\nn+1:',raw_vals_list[2], '(predicted)')
-        #get derivatives
-        prev = self.getSlope(raw_vals_list[0:2])
-        forw = self.getSlope(raw_vals_list[1:])
-        print('\nactual (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(prev,forw))
+        raw_vals_list = np.array([lastv, currentv, previousp, currentp, nextp]) 
+
+        print('------\nn-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
+        #get derivatives with ONLY predicted values
+        prev = self.getSlope(raw_vals_list[2:4])
+        forw = self.getSlope(raw_vals_list[3:])
+        print('\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(prev,forw))
         print('\npredicted action:',self.decideAction([prev, forw]),'\n------')
 
     def testModel(self): # move this to crptotrader class and move the logic there too possibly

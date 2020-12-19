@@ -21,6 +21,7 @@ while True:
         for i in reply.values():
             dropped.append(i[0])
         print(dropped)
+        #open and delete everything back from the day before
         pandas.DataFrame([dropped]).to_csv(filename, mode='a', header=False,index=False)
         time.sleep(10)
     except:
