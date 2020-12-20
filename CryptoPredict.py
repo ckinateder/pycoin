@@ -236,10 +236,10 @@ class CryptoPredictor:
         raw_vals_list = np.array([lastv, currentv, previousp, currentp, nextp]) 
         #get derivatives with ONLY predicted values
         actual_prev = self.getSlope(raw_vals_list[:2])
-        prev = self.getSlope(raw_vals_list[2:4])
-        forw = self.getSlope(raw_vals_list[3:])
+        last_ddx = self.getSlope(raw_vals_list[2:4])
+        next_ddx = self.getSlope(raw_vals_list[3:])
 
-        pair = [prev, forw]
+        pair = [last_ddx, next_ddx]
 
         if pair[0] < alpha and pair[1] > alpha:
             decision = 'buy'
@@ -253,7 +253,7 @@ class CryptoPredictor:
         print('@',datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
         print('------'*5)
         print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
-        print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(actual_prev, prev,forw))
+        print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(actual_prev, last_ddx,next_ddx))
         print('\npredicted action:',decision)
         print('------'*5,'\n')
         return decision
