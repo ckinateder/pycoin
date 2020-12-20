@@ -19,45 +19,50 @@ units = 256
 batch_size = 1
 
 Epoch 1/13
-2399/2399 - 6s - loss: 0.0028
+2399/2399 - 7s - loss: 0.0023
 Epoch 2/13
-2399/2399 - 6s - loss: 4.6002e-04
+2399/2399 - 6s - loss: 3.3973e-04
 Epoch 3/13
-2399/2399 - 6s - loss: 4.8108e-04
+2399/2399 - 6s - loss: 3.3747e-04
 Epoch 4/13
-2399/2399 - 6s - loss: 4.4175e-04
+2399/2399 - 7s - loss: 2.8918e-04
 Epoch 5/13
-2399/2399 - 6s - loss: 4.0032e-04
+2399/2399 - 6s - loss: 2.6515e-04
 Epoch 6/13
-2399/2399 - 6s - loss: 3.9685e-04
+2399/2399 - 6s - loss: 2.6624e-04
 Epoch 7/13
-2399/2399 - 6s - loss: 4.0616e-04
+2399/2399 - 6s - loss: 2.4568e-04
 Epoch 8/13
-2399/2399 - 6s - loss: 3.8107e-04
+2399/2399 - 6s - loss: 2.4556e-04
 Epoch 9/13
-2399/2399 - 6s - loss: 3.7737e-04
+2399/2399 - 6s - loss: 2.2387e-04
 Epoch 10/13
-2399/2399 - 6s - loss: 3.4580e-04
+2399/2399 - 6s - loss: 2.1883e-04
 Epoch 11/13
-2399/2399 - 6s - loss: 3.5853e-04
+2399/2399 - 6s - loss: 2.2082e-04
 Epoch 12/13
-2399/2399 - 6s - loss: 3.3907e-04
+2399/2399 - 6s - loss: 2.3302e-04
 Epoch 13/13
-2399/2399 - 6s - loss: 3.4175e-04
+2399/2399 - 6s - loss: 2.0773e-04
 Saved model to disk
-------
-n-1: $23081.60 (actual)
-n: $23080.00 (actual)
 
-n-1: $23075.65 (predicted)
-n: $23075.65 (predicted)
-n+1: $23079.83 (predicted)
+------------------------------
+@ 12/20/2020 00:34:40
+------------------------------
+n-1: $23456.60 (actual)
+n: $23460.00 (actual)
 
-predicted (previous) d/dx: 0.00
-predicted (next) d/dx: 0.42
+n-1: $23445.74 (predicted)
+n: $23446.47 (predicted)
+n+1: $23448.86 (predicted)
 
-predicted action: buy 
-------
+actual (previous) d/dx: 0.34
+
+predicted (previous) d/dx: 0.07
+predicted (next) d/dx: 0.24
+
+predicted action: hold
+------------------------------ 
 ```
 
 ### Charts

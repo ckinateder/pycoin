@@ -206,6 +206,7 @@ class CryptoPredictor:
             return 'sell'
         else:
             return 'hold'
+        # incorporate fees here too?
 
     def getGradient(self, nextdf):
         return pd.Series(np.gradient(nextdf.values), nextdf.index, name='slope')
@@ -248,12 +249,17 @@ class CryptoPredictor:
 
         raw_vals_list = np.array([lastv, currentv, previousp, currentp, nextp]) 
 
-        print('------\nn-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
+        print('------'*5)
+        print('@',datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+        print('------'*5)
+        print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
         #get derivatives with ONLY predicted values
+        actual_prev = self.getSlope(raw_vals_list[:2])
         prev = self.getSlope(raw_vals_list[2:4])
         forw = self.getSlope(raw_vals_list[3:])
-        print('\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(prev,forw))
-        print('\npredicted action:',self.decideAction([prev, forw]),'\n------')
+        print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(actual_prev, prev,forw))
+        print('\npredicted action:',self.decideAction([prev, forw]))
+        print('------'*5,'\n')
 
     def testModel(self): # move this to crptotrader class and move the logic there too possibly
         df = self.createFrame()
