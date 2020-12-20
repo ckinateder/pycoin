@@ -195,18 +195,7 @@ class CryptoPredictor:
         inputs = self.scaler.transform(inputs)
         return inputs
 
-    def decideAction(self, pair): # bring it all together here
-        # pair is derivative pair [n-1, n]
-        # compare current slope to last n slopes
-        # with that info decide to buy or sell - buy if bottoming, sell if peaking
-        alpha = 0.001 # play with
-        if pair[0] < alpha and pair[1] > alpha:
-            return 'buy'
-        elif pair[0] > alpha and pair[1] < alpha:
-            return 'sell'
-        else:
-            return 'hold'
-        # incorporate fees here too?
+    
 
     def getGradient(self, nextdf):
         return pd.Series(np.gradient(nextdf.values), nextdf.index, name='slope')
@@ -225,6 +214,50 @@ class CryptoPredictor:
 
         print('Derivative correct {:.1f}%'.format(perc_correct))
         return perc_correct
+    
+    def decideAction(self, df, model): # bring it all together here
+        # pair is derivative pair [n-1, n]
+        # compare current slope to last n slopes
+        # with that info decide to buy or sell - buy if bottoming, sell if peaking
+        alpha = 0.001 # play with
+        
+        lastv3 = df[self.important_headers['price']][len(df.index)-4]
+        lastv2 = df[self.important_headers['price']][len(df.index)-3]
+        lastv = df[self.important_headers['price']][len(df.index)-2]
+        currentv = df[self.important_headers['price']][len(df.index)-1]
+
+        inputs = self.conformInputs(np.array([lastv, currentv]))
+        nextp = self.predictNextValue(inputs,model)[0][0]
+        inputs = self.conformInputs(np.array([lastv2, lastv])) # get predicted current value to use for derivative 
+        currentp = self.predictNextValue(inputs,model)[0][0]
+        inputs = self.conformInputs(np.array([lastv3, lastv2])) # get predicted last value to use for derivative 
+        previousp = self.predictNextValue(inputs,model)[0][0]
+
+        raw_vals_list = np.array([lastv, currentv, previousp, currentp, nextp]) 
+        #get derivatives with ONLY predicted values
+        actual_prev = self.getSlope(raw_vals_list[:2])
+        prev = self.getSlope(raw_vals_list[2:4])
+        forw = self.getSlope(raw_vals_list[3:])
+
+        pair = [prev, forw]
+
+        if pair[0] < alpha and pair[1] > alpha:
+            decision = 'buy'
+        elif pair[0] > alpha and pair[1] < alpha:
+            decision = 'sell'
+        else:
+            decision = 'hold'
+
+        # output
+        print('------'*5)
+        print('@',datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+        print('------'*5)
+        print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
+        print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(actual_prev, prev,forw))
+        print('\npredicted action:',decision)
+        print('------'*5,'\n')
+        return decision
+        # incorporate fees here too?
 
     ### run code
     def testRealTime(self):
@@ -233,33 +266,10 @@ class CryptoPredictor:
         - write function in CryptoTrader to deal with getting the new data, retraining every fifteen minutes, even acting on the trade flag?
         '''
         df = self.createFrame()
-        lastv3 = df[self.important_headers['price']][len(df.index)-4]
-        lastv2 = df[self.important_headers['price']][len(df.index)-3]
-        lastv = df[self.important_headers['price']][len(df.index)-2]
-        currentv = df[self.important_headers['price']][len(df.index)-1]
 
         latest_model = self.retrainModel(self.csvset)
-
-        inputs = self.conformInputs(np.array([lastv, currentv]))
-        nextp = self.predictNextValue(inputs,latest_model)[0][0]
-        inputs = self.conformInputs(np.array([lastv2, lastv])) # get predicted current value to use for derivative 
-        currentp = self.predictNextValue(inputs,latest_model)[0][0]
-        inputs = self.conformInputs(np.array([lastv3, lastv2])) # get predicted last value to use for derivative 
-        previousp = self.predictNextValue(inputs,latest_model)[0][0]
-
-        raw_vals_list = np.array([lastv, currentv, previousp, currentp, nextp]) 
-
-        print('------'*5)
-        print('@',datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
-        print('------'*5)
-        print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
-        #get derivatives with ONLY predicted values
-        actual_prev = self.getSlope(raw_vals_list[:2])
-        prev = self.getSlope(raw_vals_list[2:4])
-        forw = self.getSlope(raw_vals_list[3:])
-        print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(actual_prev, prev,forw))
-        print('\npredicted action:',self.decideAction([prev, forw]))
-        print('------'*5,'\n')
+        
+        decision = self.decideAction(df, latest_model)
 
     def testModel(self): # move this to crptotrader class and move the logic there too possibly
         df = self.createFrame()

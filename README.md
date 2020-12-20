@@ -47,21 +47,21 @@ Epoch 13/13
 Saved model to disk
 
 ------------------------------
-@ 12/20/2020 00:34:40
+@ 12/20/2020 00:44:33
 ------------------------------
-n-1: $23456.60 (actual)
-n: $23460.00 (actual)
+n-1: $23510.20 (actual)
+n: $23517.30 (actual)
 
-n-1: $23445.74 (predicted)
-n: $23446.47 (predicted)
-n+1: $23448.86 (predicted)
+n-1: $23503.57 (predicted)
+n: $23508.87 (predicted)
+n+1: $23508.87 (predicted)
 
-actual (previous) d/dx: 0.34
+actual (previous) d/dx: 0.71
 
-predicted (previous) d/dx: 0.07
-predicted (next) d/dx: 0.24
+predicted (previous) d/dx: 0.53
+predicted (next) d/dx: 0.00
 
-predicted action: hold
+predicted action: sell
 ------------------------------ 
 ```
 
