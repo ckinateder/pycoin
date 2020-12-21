@@ -1,6 +1,7 @@
 import requests, json, datetime, CryptoPredict, time, kraken, pandas, asyncio
 #using crypto compare
 
+
 ### run code
 def testRealTime(retrain_every=15): # in mins
     filename = 'data/data121820.csv'
@@ -18,7 +19,13 @@ def testRealTime(retrain_every=15): # in mins
 
     last_time_trained = 0
     while True:
-        trader.saveBTC(filename)
+        try:
+            trader.saveBTC(filename)
+        except:
+            print('api call failed...trying again in 5')
+            time.sleep(5)
+            trader.saveBTC(filename)
+
         df = predictor.createFrame() # uses file passed already in constructor
         if (time.time() - last_time_trained) > retrain_every:
             last_time_trained = time.time()
@@ -26,7 +33,7 @@ def testRealTime(retrain_every=15): # in mins
         else:
             #print('Retraining in {:.2f}s'.format())
             pass
-        decision = predictor.decideAction(df, latest_model)
+        decision = predictor.decideAction(df, latest_model) # only do this once it can verify last 2400 CONTINUOUS DATA
         time.sleep(10)
 
 testRealTime()
