@@ -155,10 +155,7 @@ class CryptoPredictor:
         model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
         return model, new_data
 
-    def retrainModel(self, data):
-        df = self.loadCSV(data) # maybe not?
-        df = df.iloc[(len(df.index)-self.cutpoint):]
-
+    def retrainModel(self, df):
         #self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png') 
 
         print('lookback =',self.lookback,'\nepochs =',self.epochs,'\nunits =',self.units,'\nbatch_size =',self.batch_size)
@@ -267,7 +264,7 @@ class CryptoPredictor:
         '''
         df = self.createFrame()
 
-        latest_model = self.retrainModel(self.csvset)
+        latest_model = self.retrainModel(df)
         
         decision = self.decideAction(df, latest_model)
 
