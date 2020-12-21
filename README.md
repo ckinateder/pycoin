@@ -13,56 +13,59 @@ The trading logic used for this is based on the derivative of the predictions gr
 ```
 $ python3 CryptoTrader.py
 
+Dataset loaded into frame in 0.03s
 lookback = 1 
 epochs = 13 
 units = 256 
 batch_size = 1
 
 Epoch 1/13
-2399/2399 - 7s - loss: 0.0023
+2399/2399 [==============================] - 6s 3ms/step - loss: 0.0037
 Epoch 2/13
-2399/2399 - 6s - loss: 3.3973e-04
+2399/2399 [==============================] - 6s 3ms/step - loss: 6.4114e-04
 Epoch 3/13
-2399/2399 - 6s - loss: 3.3747e-04
+2399/2399 [==============================] - 6s 3ms/step - loss: 5.7245e-04
 Epoch 4/13
-2399/2399 - 7s - loss: 2.8918e-04
+2399/2399 [==============================] - 7s 3ms/step - loss: 5.2600e-04
 Epoch 5/13
-2399/2399 - 6s - loss: 2.6515e-04
+2399/2399 [==============================] - 6s 3ms/step - loss: 4.8829e-04
 Epoch 6/13
-2399/2399 - 6s - loss: 2.6624e-04
+2399/2399 [==============================] - 7s 3ms/step - loss: 5.6424e-04
 Epoch 7/13
-2399/2399 - 6s - loss: 2.4568e-04
+2399/2399 [==============================] - 7s 3ms/step - loss: 5.3544e-04
 Epoch 8/13
-2399/2399 - 6s - loss: 2.4556e-04
+2399/2399 [==============================] - 6s 3ms/step - loss: 5.0426e-04
 Epoch 9/13
-2399/2399 - 6s - loss: 2.2387e-04
+2399/2399 [==============================] - 7s 3ms/step - loss: 4.3874e-04
 Epoch 10/13
-2399/2399 - 6s - loss: 2.1883e-04
+2399/2399 [==============================] - 6s 3ms/step - loss: 4.5934e-04
 Epoch 11/13
-2399/2399 - 6s - loss: 2.2082e-04
+2399/2399 [==============================] - 7s 3ms/step - loss: 4.2796e-04
 Epoch 12/13
-2399/2399 - 6s - loss: 2.3302e-04
+2399/2399 [==============================] - 7s 3ms/step - loss: 4.9061e-04
 Epoch 13/13
-2399/2399 - 6s - loss: 2.0773e-04
+2399/2399 [==============================] - 6s 3ms/step - loss: 4.6422e-04
 Saved model to disk
+Model trained and saved in 87.46s
 
+Dataset loaded into frame in 0.03s
+------------------------------------
+@ 12/21/2020 12:54:03
 ------------------------------
-@ 12/20/2020 00:44:33
-------------------------------
-n-1: $23510.20 (actual)
-n: $23517.30 (actual)
+n-1: $22790.10 (actual)
+n: $22793.50 (actual)
 
-n-1: $23503.57 (predicted)
-n: $23508.87 (predicted)
-n+1: $23508.87 (predicted)
+n-1: $22784.17 (predicted)
+n: $22787.66 (predicted)
+n+1: $22787.66 (predicted)
 
-actual (previous) d/dx: 0.71
+actual (previous) d/dx: 0.34
 
-predicted (previous) d/dx: 0.53
+predicted (previous) d/dx: 0.35
 predicted (next) d/dx: 0.00
 
 predicted action: sell
------------------------------- 
+------------------------------------ 
 ```
 
 ### Charts

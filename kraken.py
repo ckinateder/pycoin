@@ -106,7 +106,7 @@ class KrakenTrader:
             parsed.to_csv(filename, index=False)
             # drop early rows and then rewrite NOT APPEND
 
-    def saveBTC(self, filename):
+    def saveBTC(self, filename): # just save latest:
         reply = json.loads(self.main(['Ticker', 'pair=xbtusd']))['result']['XXBTZUSD']
 
         if not os.path.isfile(filename): # only add header if file doesnt exist
@@ -116,20 +116,24 @@ class KrakenTrader:
                 header.append(i[0])
             #total.append(header)
             pandas.DataFrame([header]).to_csv(filename, mode='a', header=False,index=False)
+        
+        dropped = list()
+        dropped.append(time.time())
+        for i in reply.values():
+            dropped.append(i[0])
+        print(dropped)
+        #open and delete everything back from the day before
+        pandas.DataFrame([dropped]).to_csv(filename, mode='a', header=False,index=False)
+        # cleanup
+        self.cleanup(filename, 4096)
+        return pandas.DataFrame([dropped]) # dont usually need to return it
+        
 
+    def saveBTCLOOP(self, filename):
         while True:
             try:
-                reply = json.loads(self.main(['Ticker', 'pair=xbtusd']))['result']['XXBTZUSD']
-                dropped = list()
-                dropped.append(time.time())
-                for i in reply.values():
-                    dropped.append(i[0])
-                print(dropped)
-                #open and delete everything back from the day before
-                pandas.DataFrame([dropped]).to_csv(filename, mode='a', header=False,index=False)
-                # cleanup
-                self.cleanup(filename, 4096)
+                self.saveBTC(filename)
                 time.sleep(10)
             except:
-                print('Call failed... trying again in 5')
-                time.sleep(5)
+                print('Call failed... trying again in 2')
+                time.sleep(2)

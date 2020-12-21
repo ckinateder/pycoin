@@ -9,7 +9,7 @@ from keras.models import model_from_json
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib.pylab import rcParams
 import matplotlib.pyplot as plt
-import datetime
+import datetime, time
 #setting figure size
 
 class CryptoPredictor:
@@ -37,8 +37,10 @@ class CryptoPredictor:
         return df
 
     def createFrame(self):
+        begin = time.time()
         df = self.loadCSV(self.csvset)
         df = df.iloc[(len(df.index)-self.cutpoint):]
+        print('Dataset loaded into frame in {:.2f}s'.format(time.time()-begin))
         return df
 
     def plotSave(self, series, xlabel, ylabel, title, legend, filename): # series must be an array
@@ -118,7 +120,7 @@ class CryptoPredictor:
         model.add(Dense(1))
 
         model.compile(loss='mean_squared_error', optimizer='adam')
-        model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
+        model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1)
         return model, new_data
     
     def trainModel(self, df, lookback, epochs, units, batch_size):
@@ -152,16 +154,18 @@ class CryptoPredictor:
         model.add(Dense(1))
 
         model.compile(loss='mean_squared_error', optimizer='adam')
-        model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
+        model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1)
         return model, new_data
 
     def retrainModel(self, df):
-        #self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png') 
+        #self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png')
+        begin = time.time() 
 
         print('lookback =',self.lookback,'\nepochs =',self.epochs,'\nunits =',self.units,'\nbatch_size =',self.batch_size)
 
         model, new_data = self.trainModel(df, self.lookback, self.epochs, self.units, self.batch_size)
         self.saveModel(model, 'current-model')
+        print('Model trained and saved in {:.2f}s'.format(time.time()-begin))
         return model
 
     def predictNextTest(self, inputs, model):
@@ -232,11 +236,11 @@ class CryptoPredictor:
 
         raw_vals_list = np.array([lastv, currentv, previousp, currentp, nextp]) 
         #get derivatives with ONLY predicted values
-        actual_prev = self.getSlope(raw_vals_list[:2])
+        actual_last_ddx = self.getSlope(raw_vals_list[:2])
         last_ddx = self.getSlope(raw_vals_list[2:4])
         next_ddx = self.getSlope(raw_vals_list[3:])
 
-        pair = [last_ddx, next_ddx]
+        pair = [actual_last_ddx, next_ddx] ### SO IMPORTANT
 
         if pair[0] < alpha and pair[1] > alpha:
             decision = 'buy'
@@ -246,27 +250,15 @@ class CryptoPredictor:
             decision = 'hold'
 
         # output
-        print('------'*5)
+        print('------'*6)
         print('@',datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
         print('------'*5)
         print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
-        print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(actual_prev, last_ddx,next_ddx))
+        print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(actual_last_ddx, last_ddx,next_ddx))
         print('\npredicted action:',decision)
-        print('------'*5,'\n')
+        print('------'*6,'\n')
         return decision
         # incorporate fees here too?
-
-    ### run code
-    def testRealTime(self):
-        '''
-        - turn into handleNext
-        - write function in CryptoTrader to deal with getting the new data, retraining every fifteen minutes, even acting on the trade flag?
-        '''
-        df = self.createFrame()
-
-        latest_model = self.retrainModel(df)
-        
-        decision = self.decideAction(df, latest_model)
 
     def testModel(self): # move this to crptotrader class and move the logic there too possibly
         df = self.createFrame()
