@@ -16,6 +16,10 @@ import hashlib
 import hmac
 import pprint
 import urllib.request as urllib2
+import json
+import os
+import pandas
+import csv
 
 class KrakenTrader:
     def __init__(self):
@@ -90,3 +94,42 @@ class KrakenTrader:
             print(api_reply)
             return api_reply
             #sys.exit(1)
+    
+    def cleanup(self, filename, how_far_back):
+        num_lines = sum(1 for line in open(filename))
+        if num_lines>how_far_back:
+            whole_file = pandas.read_csv(filename)
+            
+            end = num_lines-how_far_back
+            
+            parsed = whole_file.drop(list(range(0,end)))
+            parsed.to_csv(filename, index=False)
+            # drop early rows and then rewrite NOT APPEND
+
+    def saveBTC(self, filename):
+        reply = json.loads(self.main(['Ticker', 'pair=xbtusd']))['result']['XXBTZUSD']
+
+        if not os.path.isfile(filename): # only add header if file doesnt exist
+            header = list()
+            header.append('unix')
+            for i in reply.items():
+                header.append(i[0])
+            #total.append(header)
+            pandas.DataFrame([header]).to_csv(filename, mode='a', header=False,index=False)
+
+        while True:
+            try:
+                reply = json.loads(self.main(['Ticker', 'pair=xbtusd']))['result']['XXBTZUSD']
+                dropped = list()
+                dropped.append(time.time())
+                for i in reply.values():
+                    dropped.append(i[0])
+                print(dropped)
+                #open and delete everything back from the day before
+                pandas.DataFrame([dropped]).to_csv(filename, mode='a', header=False,index=False)
+                # cleanup
+                self.cleanup(filename, 4096)
+                time.sleep(10)
+            except:
+                print('Call failed... trying again in 5')
+                time.sleep(5)
