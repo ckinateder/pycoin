@@ -32,7 +32,7 @@ def testRealTime(filename, retrain_every=15): # in mins
 
         df = predictor.createFrame() # uses file passed already in constructor
 
-        if len(df.index)>2400: # if set is big enough
+        if len(df.index)>1800: # if set is big enough
             if (time.time() - last_time_trained) > retrain_every:
                 last_time_trained = time.time()
                 latest_model = predictor.retrainModel(df)
@@ -40,7 +40,7 @@ def testRealTime(filename, retrain_every=15): # in mins
             print('Last model trained at', datetime.datetime.utcfromtimestamp(last_time_trained).strftime('%Y-%m-%d %H:%M:%S'), 'UTC')
             decision = predictor.decideAction(df, latest_model) # only do this once it can verify last 2400 CONTINUOUS DATA
         else:
-            print('Dataframe not big enough - missing ',(2400-len(df.index)),'points')
+            print('Dataframe not big enough - missing',(2400-len(df.index)),'points')
         
         time.sleep(10)
 
