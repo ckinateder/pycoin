@@ -121,7 +121,7 @@ class KrakenTrader:
         dropped.append(time.time())
         for i in reply.values():
             dropped.append(i[0])
-        print(dropped)
+        print('Recieved ',dropped)
         #open and delete everything back from the day before
         pandas.DataFrame([dropped]).to_csv(filename, mode='a', header=False,index=False)
         # cleanup
