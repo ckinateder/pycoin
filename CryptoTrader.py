@@ -34,6 +34,7 @@ def testRealTime(filename, retrain_every=15): # in mins
 
         if len(df.index)>1800: # if set is big enough with absolute MIN
             predictor.cutpoint = len(df.index)
+            ###RETRAIN
             if (time.time() - last_time_trained) > retrain_every:
                 last_time_trained = time.time()
                 latest_model = predictor.retrainModel(df)
