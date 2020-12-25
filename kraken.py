@@ -107,7 +107,8 @@ class KrakenTrader:
             # drop early rows and then rewrite NOT APPEND
 
     def saveBTC(self, filename): # just save latest:
-        reply = json.loads(self.main(['Ticker', 'pair=xbtusd']))['result']['XXBTZUSD']
+        args = ['Ticker', 'pair=xbtusd']
+        reply = json.loads(self.main(args))['result']['XXBTZUSD']
 
         if not os.path.isfile(filename): # only add header if file doesnt exist
             header = list()
@@ -121,9 +122,10 @@ class KrakenTrader:
         dropped.append(time.time())
         for i in reply.values():
             dropped.append(i[0])
-        print('Recieved ',dropped)
+        print('Recieved response from with',args)
         #open and delete everything back from the day before
         pandas.DataFrame([dropped]).to_csv(filename, mode='a', header=False,index=False)
+        print('Saved response at time',dropped[0], 'to file')
         # cleanup
         self.cleanup(filename, 4096)
         return pandas.DataFrame([dropped]) # dont usually need to return it

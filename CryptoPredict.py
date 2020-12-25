@@ -39,7 +39,11 @@ class CryptoPredictor:
     def createFrame(self):
         begin = time.time()
         df = self.loadCSV(self.csvset)
-        df = df.iloc[(len(df.index)-self.cutpoint):]
+        if (len(df.index)-self.cutpoint) >= 0:
+            start = (len(df.index)-self.cutpoint)
+        else:
+            start = 0
+        df = df.iloc[start:]
         print('Dataset loaded into frame in {:.2f}s'.format(time.time()-begin))
         return df
 
@@ -250,7 +254,7 @@ class CryptoPredictor:
             decision = 'hold'
 
         # output
-        print('------'*6)
+        print('\n',('------'*6))
         print('@',datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
         print('------'*5)
         print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
