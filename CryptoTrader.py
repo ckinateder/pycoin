@@ -1,4 +1,4 @@
-import requests, json, datetime, CryptoPredict, time, kraken, pandas, asyncio, concurrent.futures, logging, threading
+import requests, json, datetime, CryptoPredict, time, kraken, pandas, asyncio, concurrent.futures, logging, threading, psutil, os
 #using crypto compare
 
 filename = 'data/data121820.csv'
@@ -21,16 +21,16 @@ class ThreadedTrader:
                                                         important_headers=headers)
         self.trader = kraken.KrakenTrader()
         self.retrain_every = retrain_every*60
+        self.current_df = self.predictor.createFrame()
 
     #write threading here using threads and futures
     def checkRetrainLoop(self):
         ###RETRAIN
         last_time_trained = 0
         while True:
-            df = self.predictor.createFrame()
             if (time.time() - last_time_trained) > self.retrain_every or last_time_trained == 0:
                 last_time_trained = time.time()
-                latest_model = self.predictor.retrainModel(df)
+                self.predictor.retrainModel(self.current_df)
                 
             print('Last model trained at', datetime.datetime.utcfromtimestamp(last_time_trained).strftime('%Y-%m-%d %H:%M:%S'), 'UTC')
             time.sleep(10)
@@ -44,13 +44,18 @@ class ThreadedTrader:
                 time.sleep(5)
                 self.trader.saveBTC(filename)
                 
-            df = self.predictor.createFrame()
+            self.current_df = self.predictor.createFrame() # re update frame
             current_model = self.predictor.loadModel('current-model')
-            decision = self.predictor.decideAction(df, current_model) # only do this once it can verify last 2400 CONTINUOUS DATA
+            decision = self.predictor.decideAction(self.current_df, current_model) # only do this once it can verify last 2400 CONTINUOUS DATA
+            
+            process = psutil.Process(os.getpid())
+            print('* Using {:.2f} MB of memory\n'.format(process.memory_info().rss/(1024*1024)))  # in bytes 
+
             time.sleep(10)
 
     def run(self):
         savingThread = threading.Thread(target=self.saveLoop)
+        time.sleep(10) # make sure saving is ahead
         retrainingThread = threading.Thread(target=self.checkRetrainLoop)
         savingThread.start()
         retrainingThread.start()
