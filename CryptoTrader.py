@@ -21,7 +21,11 @@ class ThreadedTrader:
             'timestamp': 'unix',
             'price': 'a'  # the column used for price
         }
+        self.usd = initial_investment
+        self.btc = 0
         self.filename = filename
+        self.retrain_every = retrain_every*60
+        self.trader = kraken.KrakenTrader()
         self.predictor = CryptoPredict.CryptoPredictor(lookback=1,
                                                        epochs=13,
                                                        units=256,
@@ -30,12 +34,7 @@ class ThreadedTrader:
                                                        cutpoint=2400,
                                                        important_headers=headers,
                                                        verbose=0)
-        self.trader = kraken.KrakenTrader()
-        self.retrain_every = retrain_every*60
         self.current_df = self.predictor.createFrame()
-        self.initial_investment = initial_investment
-        self.usd = self.initial_investment
-        self.btc = 0
 
     def checkMemory(self, heapy=False):
         process = psutil.Process(os.getpid())
@@ -78,21 +77,23 @@ class ThreadedTrader:
 
                 # buy or sell here
                 current_price = self.current_df.iloc[-1].a
+
                 crypto_value = self.usd/current_price  # in btc
                 dollar_value = self.btc*current_price  # in usd
+
                 if decision == 'buy' and self.usd >= dollar_value:
-                    self.btc = self.btc + crypto_value
+                    self.btc = self.btc + self.usd/current_price
                     self.usd = self.usd - self.btc*current_price
                     print(
-                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n  + Bought {:.6f} BTC for ${:.2f} USD\n'.format(self.usd, self.btc, crypto_value, self.btc*current_price))
+                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n   (bought {:.6f} BTC for ${:.2f} USD)\n'.format(self.usd, self.btc, crypto_value, self.btc*current_price))
                 elif decision == 'sell' and self.btc >= crypto_value:
                     self.btc = self.btc - self.usd/current_price
-                    self.usd = self.usd + dollar_value
+                    self.usd = self.usd + self.btc*current_price
                     print(
-                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n  + Sold {:.6f} BTC for ${:.2f} USD\n'.format(self.usd, self.btc, self.usd/current_price, dollar_value))
+                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n   (sold {:.6f} BTC for ${:.2f} USD)\n'.format(self.usd, self.btc, self.usd/current_price, dollar_value))
                 else:
                     print(
-                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n'.format(self.usd, self.btc))
+                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n   (holding)\n'.format(self.usd, self.btc))
                 # end transaction
             except sklearn.exceptions.NotFittedError:
                 print('* Model not fit yet - waiting til next cycle')
