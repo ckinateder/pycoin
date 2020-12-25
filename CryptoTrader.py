@@ -1,17 +1,12 @@
-import requests
-import json
 import datetime
 import CryptoPredict
 import time
 import kraken
-import pandas
-import asyncio
-import concurrent.futures
-import logging
 import threading
 import psutil
 import os
 import sklearn
+import sys
 # using crypto compare
 from guppy import hpy
 
@@ -21,7 +16,7 @@ filename = 'data/data121820.csv'
 
 
 class ThreadedTrader:
-    def __init__(self, filename, retrain_every):
+    def __init__(self, filename, retrain_every, initial_investment):
         headers = {
             'timestamp': 'unix',
             'price': 'a'  # the column used for price
@@ -33,10 +28,14 @@ class ThreadedTrader:
                                                        batch_size=1,
                                                        datafile=filename,
                                                        cutpoint=2400,
-                                                       important_headers=headers)
+                                                       important_headers=headers,
+                                                       verbose=0)
         self.trader = kraken.KrakenTrader()
         self.retrain_every = retrain_every*60
         self.current_df = self.predictor.createFrame()
+        self.initial_investment = initial_investment
+        self.usd = self.initial_investment
+        self.btc = 0
 
     def checkMemory(self, heapy=False):
         process = psutil.Process(os.getpid())
@@ -54,6 +53,7 @@ class ThreadedTrader:
         while True:
             if (time.time() - last_time_trained) > self.retrain_every or last_time_trained == 0:
                 last_time_trained = time.time()
+                print('* Retraining model ...')
                 self.predictor.retrainModel(self.current_df)
 
             print('Last model trained at', datetime.datetime.utcfromtimestamp(
@@ -75,6 +75,25 @@ class ThreadedTrader:
                 # only do this once it can verify last 2400 CONTINUOUS DATA
                 decision = self.predictor.decideAction(
                     self.current_df, current_model)
+
+                # buy or sell here
+                current_price = self.current_df.iloc[-1].a
+                crypto_value = self.usd/current_price  # in btc
+                dollar_value = self.btc*current_price  # in usd
+                if decision == 'buy' and self.usd >= dollar_value:
+                    self.btc = self.btc + crypto_value
+                    self.usd = self.usd - self.btc*current_price
+                    print(
+                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n  + Bought {:.6f} BTC for ${:.2f} USD\n'.format(self.usd, self.btc, crypto_value, self.btc*current_price))
+                elif decision == 'sell' and self.btc >= crypto_value:
+                    self.btc = self.btc - self.usd/current_price
+                    self.usd = self.usd + dollar_value
+                    print(
+                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n  + Sold {:.6f} BTC for ${:.2f} USD\n'.format(self.usd, self.btc, self.usd/current_price, dollar_value))
+                else:
+                    print(
+                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n'.format(self.usd, self.btc))
+                # end transaction
             except sklearn.exceptions.NotFittedError:
                 print('* Model not fit yet - waiting til next cycle')
 
@@ -101,5 +120,5 @@ class ThreadedTrader:
             print('* Cancelled')
 
 
-threader = ThreadedTrader(filename, 15)
+threader = ThreadedTrader(filename, retrain_every=10, initial_investment=50)
 threader.run()

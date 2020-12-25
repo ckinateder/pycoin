@@ -16,7 +16,7 @@ import time
 
 class CryptoPredictor:
 
-    def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, important_headers={'timestamp': 'time', 'price': 'close'}, datafile='', cutpoint=2000):
+    def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, important_headers={'timestamp': 'time', 'price': 'close'}, datafile='', cutpoint=2000, verbose=2):
         self.models_path = 'models/'
         self.csvset = datafile
         self.cutpoint = cutpoint  # only use last x datapoints
@@ -28,6 +28,7 @@ class CryptoPredictor:
         self.batch_size = batch_size  # 2 is good
         #self.rcParams['figure.figsize'] = 20,10
         self.scaler = MinMaxScaler(feature_range=(0, 1))
+        self.verbose = verbose  # 0 is silent, 1 is progressbar
 
     def loadCSV(self, filename):
         # read the file
@@ -44,6 +45,8 @@ class CryptoPredictor:
         df = self.loadCSV(self.csvset)
         if (len(df.index)-self.cutpoint) >= 0:
             start = (len(df.index)-self.cutpoint)
+            print('WARNING: DATASET LENGTH < {} (actual = {})\nMODEL PERFORMANCE WILL BE SUBOPTIMAL\n'.format(
+                self.cutpoint, len(df.index)))
         else:
             start = 0
         df = df.iloc[start:]
@@ -132,7 +135,7 @@ class CryptoPredictor:
 
         model.compile(loss='mean_squared_error', optimizer='adam')
         model.fit(x_train, y_train, epochs=epochs,
-                  batch_size=batch_size, verbose=1)
+                  batch_size=batch_size, verbose=self.verbose)
         return model, new_data
 
     def trainModel(self, df, lookback, epochs, units, batch_size):
@@ -170,15 +173,15 @@ class CryptoPredictor:
 
         model.compile(loss='mean_squared_error', optimizer='adam')
         model.fit(x_train, y_train, epochs=epochs,
-                  batch_size=batch_size, verbose=1)
+                  batch_size=batch_size, verbose=self.verbose)
         return model, new_data
 
     def retrainModel(self, df):
         #self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png')
         begin = time.time()
 
-        print('Model params [ lookback =', self.lookback, 'epochs =', self.epochs,
-              'units =', self.units, 'batch_size =', self.batch_size, ']')
+        print('Model params [ lookback =', self.lookback, ', epochs =', self.epochs,
+              ', units =', self.units, ', batch_size =', self.batch_size, ']')
 
         model, new_data = self.trainModel(
             df, self.lookback, self.epochs, self.units, self.batch_size)
@@ -271,7 +274,7 @@ class CryptoPredictor:
         print('')
         print('------'*6)
         print('@', datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
-        print('------'*5)
+        print('------'*6)
         print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
         print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(
             actual_last_ddx, last_ddx, next_ddx))
