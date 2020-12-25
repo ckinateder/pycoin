@@ -1,5 +1,6 @@
-import requests, json, datetime, CryptoPredict, time, kraken, pandas, asyncio, concurrent.futures, logging, threading, psutil, os
+import requests, json, datetime, CryptoPredict, time, kraken, pandas, asyncio, concurrent.futures, logging, threading, psutil, os, sklearn
 #using crypto compare
+from guppy import hpy
 
 filename = 'data/data121820.csv'
 
@@ -23,6 +24,13 @@ class ThreadedTrader:
         self.retrain_every = retrain_every*60
         self.current_df = self.predictor.createFrame()
 
+    def checkMemory(self, heapy=False):            
+        process = psutil.Process(os.getpid())
+        print('* Using {:.2f} MB of memory\n'.format(process.memory_info().rss/(1024*1024)))  # in bytes 
+        if heapy:
+            h = hpy()
+            print(h.heap())
+
     #write threading here using threads and futures
     def checkRetrainLoop(self):
         ###RETRAIN
@@ -43,23 +51,35 @@ class ThreadedTrader:
                 print('api call failed...trying again in 5')
                 time.sleep(5)
                 self.trader.saveBTC(filename)
-                
+            
             self.current_df = self.predictor.createFrame() # re update frame
             current_model = self.predictor.loadModel('current-model')
-            decision = self.predictor.decideAction(self.current_df, current_model) # only do this once it can verify last 2400 CONTINUOUS DATA
-            
-            process = psutil.Process(os.getpid())
-            print('* Using {:.2f} MB of memory\n'.format(process.memory_info().rss/(1024*1024)))  # in bytes 
+            try:
+                decision = self.predictor.decideAction(self.current_df, current_model) # only do this once it can verify last 2400 CONTINUOUS DATA
+            except sklearn.exceptions.NotFittedError:     
+                print('* Model not fit yet - waiting til next cycle')
+
+            self.checkMemory()
 
             time.sleep(10)
 
     def run(self):
-        savingThread = threading.Thread(target=self.saveLoop)
-        time.sleep(10) # make sure saving is ahead
-        retrainingThread = threading.Thread(target=self.checkRetrainLoop)
-        savingThread.start()
-        retrainingThread.start()
-        # x.join()
+        try:
+            print('* Initial training ...')
+            #self.predictor.retrainModel(self.current_df) ## initialize with retrained model
+
+            print('* Creating savingThread ...')
+            savingThread = threading.Thread(target=self.saveLoop)
+            print('* Starting savingThread ...')
+            savingThread.start()
+            print('* Creating retrainingThread ...')            
+            retrainingThread = threading.Thread(target=self.checkRetrainLoop)
+            print('* Starting retrainingThread ...\n')   
+            retrainingThread.start()
+            print('\nGood to go!\n')
+            
+        except (KeyboardInterrupt, SystemExit):
+            print('* Cancelled')
 
 threader = ThreadedTrader(filename, 15)
 threader.run()

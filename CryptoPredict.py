@@ -165,7 +165,7 @@ class CryptoPredictor:
         #self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png')
         begin = time.time() 
 
-        print('lookback =',self.lookback,'\nepochs =',self.epochs,'\nunits =',self.units,'\nbatch_size =',self.batch_size)
+        print('Model params [ lookback =',self.lookback,'epochs =',self.epochs,'units =',self.units,'batch_size =',self.batch_size,']')
 
         model, new_data = self.trainModel(df, self.lookback, self.epochs, self.units, self.batch_size)
         self.saveModel(model, 'current-model')
