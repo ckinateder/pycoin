@@ -254,7 +254,8 @@ class CryptoPredictor:
             decision = 'hold'
 
         # output
-        print('\n',('------'*6))
+        print('')
+        print('------'*6)
         print('@',datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
         print('------'*5)
         print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
