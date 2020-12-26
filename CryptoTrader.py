@@ -83,17 +83,17 @@ class ThreadedTrader:
 
                 if decision == 'buy' and self.usd >= dollar_value:
                     self.btc = self.btc + self.usd/current_price
-                    self.usd = self.usd - self.btc*current_price
+                    self.usd = round(self.usd - self.btc*current_price, 2)
                     print(
-                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n   (bought {:.6f} BTC for ${:.2f} USD)\n'.format(self.usd, self.btc, crypto_value, self.btc*current_price))
+                        '+ Balance:\n  + {:.2f} USD\n  + {:.8f} BTC\n   (bought)\n'.format(self.usd, self.btc))
                 elif decision == 'sell' and self.btc >= crypto_value:
+                    self.usd = round(self.usd + self.btc*current_price, 2)
                     self.btc = self.btc - self.usd/current_price
-                    self.usd = self.usd + self.btc*current_price
                     print(
-                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n   (sold {:.6f} BTC for ${:.2f} USD)\n'.format(self.usd, self.btc, self.usd/current_price, dollar_value))
+                        '+ Balance:\n  + {:.2f} USD\n  + {:.8f} BTC\n   (sold)\n'.format(self.usd, self.btc))
                 else:
                     print(
-                        '+ Balance:\n  + {:.2f} USD\n  + {:.6f} BTC\n   (holding)\n'.format(self.usd, self.btc))
+                        '+ Balance:\n  + {:.2f} USD\n  + {:.8f} BTC\n   (holding)\n'.format(self.usd, self.btc))
                 # end transaction
             except sklearn.exceptions.NotFittedError:
                 print('* Model not fit yet - waiting til next cycle')
@@ -121,5 +121,5 @@ class ThreadedTrader:
             print('* Cancelled')
 
 
-threader = ThreadedTrader(filename, retrain_every=10, initial_investment=50)
+threader = ThreadedTrader(filename, retrain_every=10, initial_investment=500)
 threader.run()
