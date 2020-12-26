@@ -7,12 +7,11 @@ import psutil
 import os
 import sklearn
 import sys
+import json
 # using crypto compare
 from guppy import hpy
 
 filename = 'data/data121820.csv'
-
-# make predictor global
 
 
 class ThreadedTrader:
@@ -35,6 +34,12 @@ class ThreadedTrader:
                                                        important_headers=headers,
                                                        verbose=0)
         self.current_df = self.predictor.createFrame()
+
+    def getFees(self):
+        # open file with json of fees and return dict of fees for the prices keys
+        with open('data/fees.json', 'r') as jfees:
+            self.fees = json.loads(jfees.read())
+        return self.fees
 
     def checkMemory(self, heapy=False):
         process = psutil.Process(os.getpid())
@@ -77,6 +82,8 @@ class ThreadedTrader:
 
                 # buy or sell here
                 current_price = self.current_df.iloc[-1].a
+
+                kraken_fee = self.getFees()['kraken']['maker']/100
 
                 crypto_value = self.usd/current_price  # in btc
                 dollar_value = self.btc*current_price  # in usd
