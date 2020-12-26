@@ -82,12 +82,12 @@ class ThreadedTrader:
                 dollar_value = self.btc*current_price  # in usd
 
                 if decision == 'buy' and self.usd >= dollar_value:
-                    self.btc = self.btc + self.usd/current_price
-                    self.usd = round(self.usd - self.btc*current_price, 2)
+                    self.btc = self.btc + crypto_value
+                    self.usd = self.usd - self.btc*current_price
                     print(
                         '+ Balance:\n  + {:.2f} USD\n  + {:.8f} BTC\n   (bought)\n'.format(self.usd, self.btc))
                 elif decision == 'sell' and self.btc >= crypto_value:
-                    self.usd = round(self.usd + self.btc*current_price, 2)
+                    self.usd = self.usd + dollar_value
                     self.btc = self.btc - self.usd/current_price
                     print(
                         '+ Balance:\n  + {:.2f} USD\n  + {:.8f} BTC\n   (sold)\n'.format(self.usd, self.btc))
