@@ -11,12 +11,15 @@ from matplotlib.pylab import rcParams
 import matplotlib.pyplot as plt
 import datetime
 import time
+import sys
 # setting figure size
+
+WARN_BARS = '**'*40
 
 
 class CryptoPredictor:
 
-    def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, important_headers={'timestamp': 'time', 'price': 'close'}, datafile='', cutpoint=2000, verbose=2):
+    def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, important_headers={'timestamp': 'time', 'price': 'close'}, datafile='', cutpoint=1800, verbose=2):
         self.models_path = 'models/'
         self.csvset = datafile
         self.cutpoint = cutpoint  # only use last x datapoints
@@ -32,7 +35,13 @@ class CryptoPredictor:
 
     def loadCSV(self, filename):
         # read the file
-        df = pd.read_csv(filename)
+        try:
+            df = pd.read_csv(filename)
+        except FileNotFoundError:
+            print('File \''+filename +
+                  '\' not found - initializing df to empty frame ...')
+            df = pd.DataFrame(
+                columns=[self.important_headers['timestamp'], self.important_headers['price']])
         # setting index as date
         df['date'] = pd.to_datetime(
             df[self.important_headers['timestamp']], unit='s')  # UNITS IS IMPORTANT
@@ -45,9 +54,11 @@ class CryptoPredictor:
         df = self.loadCSV(self.csvset)
         if (len(df.index)-self.cutpoint) >= 0:
             start = (len(df.index)-self.cutpoint)
-            print('WARNING: DATASET LENGTH < {} (actual = {})\nMODEL PERFORMANCE WILL BE SUBOPTIMAL\n'.format(
-                self.cutpoint, len(df.index)))
         else:
+            print('\n'+(WARN_BARS))
+            print('* WARNING: DATASET LENGTH < {} (actual = {})\n* MODEL PERFORMANCE WILL BE SUBOPTIMAL'.format(
+                self.cutpoint, len(df.index)))
+            print((WARN_BARS)+'\n')
             start = 0
         df = df.iloc[start:]
         print('Dataset loaded into frame in {:.2f}s'.format(time.time()-begin))
@@ -162,7 +173,8 @@ class CryptoPredictor:
 
         x_train, y_train = np.array(x_train), np.array(
             y_train)  # convert to numpy array
-        x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+        x_train = np.reshape(
+            x_train, (x_train.shape[0], x_train.shape[1], 1))
 
         # create and fit the LSTM network
         model = Sequential()
@@ -178,16 +190,23 @@ class CryptoPredictor:
 
     def retrainModel(self, df):
         #self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png')
-        begin = time.time()
+        try:
+            begin = time.time()
 
-        print('Model params [ lookback =', self.lookback, ', epochs =', self.epochs,
-              ', units =', self.units, ', batch_size =', self.batch_size, ']')
+            print('Model params [ lookback =', self.lookback, ', epochs =', self.epochs,
+                  ', units =', self.units, ', batch_size =', self.batch_size, ']')
 
-        model, new_data = self.trainModel(
-            df, self.lookback, self.epochs, self.units, self.batch_size)
-        self.saveModel(model, 'current-model')
-        print('Model trained and saved in {:.2f}s'.format(time.time()-begin))
-        return model
+            model, new_data = self.trainModel(
+                df, self.lookback, self.epochs, self.units, self.batch_size)
+            self.saveModel(model, 'current-model')
+            print('Model trained and saved in {:.2f}s'.format(
+                time.time()-begin))
+            return model
+
+        except:
+            print('\n'+(WARN_BARS))
+            print('* WARNING: MODEL COULD NOT BE CREATED\n* USING BACKUP FROM FILE - THIS WILL PRODUCE ERRONEOUS RESULTS')
+            print((WARN_BARS)+'\n')
 
     def predictNextTest(self, inputs, model):
         X_test = []
@@ -241,45 +260,52 @@ class CryptoPredictor:
         # with that info decide to buy or sell - buy if bottoming, sell if peaking
         alpha = 0.001  # play with
 
-        lastv3 = df[self.important_headers['price']][len(df.index)-4]
-        lastv2 = df[self.important_headers['price']][len(df.index)-3]
-        lastv = df[self.important_headers['price']][len(df.index)-2]
-        currentv = df[self.important_headers['price']][len(df.index)-1]
+        try:
+            lastv3 = df[self.important_headers['price']][len(df.index)-4]
+            lastv2 = df[self.important_headers['price']][len(df.index)-3]
+            lastv = df[self.important_headers['price']][len(df.index)-2]
+            currentv = df[self.important_headers['price']][len(df.index)-1]
 
-        inputs = self.conformInputs(np.array([lastv, currentv]))
-        nextp = self.predictNextValue(inputs, model)[0][0]
-        # get predicted current value to use for derivative
-        inputs = self.conformInputs(np.array([lastv2, lastv]))
-        currentp = self.predictNextValue(inputs, model)[0][0]
-        # get predicted last value to use for derivative
-        inputs = self.conformInputs(np.array([lastv3, lastv2]))
-        previousp = self.predictNextValue(inputs, model)[0][0]
+            inputs = self.conformInputs(np.array([lastv, currentv]))
+            nextp = self.predictNextValue(inputs, model)[0][0]
+            # get predicted current value to use for derivative
+            inputs = self.conformInputs(np.array([lastv2, lastv]))
+            currentp = self.predictNextValue(inputs, model)[0][0]
+            # get predicted last value to use for derivative
+            inputs = self.conformInputs(np.array([lastv3, lastv2]))
+            previousp = self.predictNextValue(inputs, model)[0][0]
 
-        raw_vals_list = np.array([lastv, currentv, previousp, currentp, nextp])
-        # get derivatives with ONLY predicted values
-        actual_last_ddx = self.getSlope(raw_vals_list[:2])
-        last_ddx = self.getSlope(raw_vals_list[2:4])
-        next_ddx = self.getSlope(raw_vals_list[3:])
+            raw_vals_list = np.array(
+                [lastv, currentv, previousp, currentp, nextp])
+            # get derivatives with ONLY predicted values
+            actual_last_ddx = self.getSlope(raw_vals_list[:2])
+            last_ddx = self.getSlope(raw_vals_list[2:4])
+            next_ddx = self.getSlope(raw_vals_list[3:])
 
-        pair = [actual_last_ddx, next_ddx]  # SO IMPORTANT
+            pair = [actual_last_ddx, next_ddx]  # SO IMPORTANT
 
-        if pair[0] < alpha and pair[1] > alpha:
-            decision = 'buy'
-        elif pair[0] > alpha and pair[1] < alpha:
-            decision = 'sell'
-        else:
+            if pair[0] < alpha and pair[1] > alpha:
+                decision = 'buy'
+            elif pair[0] > alpha and pair[1] < alpha:
+                decision = 'sell'
+            else:
+                decision = 'hold'
+
+            # output
+            print('')
+            print('------'*6)
+            print('@', datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+            print('------'*6)
+            print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
+            print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(
+                actual_last_ddx, last_ddx, next_ddx))
+            print('\npredicted action:', decision)
+            print('------'*6, '\n')
+        except IndexError:
+            print('\n'+(WARN_BARS))
+            print('* WARNING: DATASET NOT LARGE ENOUGH TO PREDICT\n* RETURNING \'hold\'')
+            print((WARN_BARS)+'\n')
             decision = 'hold'
-
-        # output
-        print('')
-        print('------'*6)
-        print('@', datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
-        print('------'*6)
-        print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
-        print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(
-            actual_last_ddx, last_ddx, next_ddx))
-        print('\npredicted action:', decision)
-        print('------'*6, '\n')
         return decision
         # incorporate fees here too?
 

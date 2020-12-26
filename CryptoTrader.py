@@ -31,7 +31,7 @@ class ThreadedTrader:
                                                        units=256,
                                                        batch_size=1,
                                                        datafile=filename,
-                                                       cutpoint=2400,
+                                                       cutpoint=1800,
                                                        important_headers=headers,
                                                        verbose=0)
         self.current_df = self.predictor.createFrame()
