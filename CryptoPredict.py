@@ -14,7 +14,10 @@ import time
 import sys
 # setting figure size
 
-WARN_BARS = '**'*40
+WIDTH = 80
+
+WARN_BARS = '*'*WIDTH
+SPACE_BARS = '-'*WIDTH
 
 
 class CryptoPredictor:
@@ -292,15 +295,14 @@ class CryptoPredictor:
                 decision = 'hold'
 
             # output
-            print('')
-            print('------'*6)
+            print('\n'+SPACE_BARS)
             print('@', datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
-            print('------'*6)
+            print(SPACE_BARS)
             print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
             print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(
                 actual_last_ddx, last_ddx, next_ddx))
             print('\npredicted action:', decision)
-            print('------'*6, '\n')
+            print(SPACE_BARS, '\n')
         except IndexError:
             print('\n'+(WARN_BARS))
             print('* WARNING: DATASET NOT LARGE ENOUGH TO PREDICT\n* RETURNING \'hold\'')
