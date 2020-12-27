@@ -81,6 +81,7 @@ Rate of change of predicted prices –
 Perent error in rate of change of predicted prices –
 ![Error](chart/error.png)
 
+<!-- 
 ## Intermarket
 
 This side of pycoin will scan given markets for each's crypto price, make a decision on the greatest difference between the two, buy at the lowest, and sell at the highest – all with in the same moment.
@@ -125,3 +126,4 @@ Net ROI w/ $100 invested => $0.2553
 ```
 
 Keep in mind this is meant to be traded up to every 10 seconds, so these values compounded == $$$. Or, at least $.
+-->

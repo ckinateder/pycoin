@@ -11,7 +11,7 @@ import json
 # using crypto compare
 from guppy import hpy
 
-filename = 'data/data121820.csv'
+filename = 'data/kraken.csv'
 
 
 class ThreadedTrader:
