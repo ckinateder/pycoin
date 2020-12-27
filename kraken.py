@@ -117,7 +117,7 @@ class KrakenTrader:
             # drop early rows and then rewrite NOT APPEND
 
     def saveBTC(self, filename):  # just save latest:
-        args = ['Ticker', 'pair=xbtusd']
+        args = ['Ticker', 'pair=xxbtzusd']
         reply = json.loads(self.main(args))['result']['XXBTZUSD']
 
         if not os.path.isfile(filename):  # only add header if file doesnt exist
@@ -133,7 +133,38 @@ class KrakenTrader:
         dropped.append(time.time())
         for i in reply.values():
             dropped.append(i[0])
-        print('Recieved response from with', args)
+        print('Recieved response from with', args, '-', dropped)
+        # open and delete everything back from the day before
+        pandas.DataFrame([dropped]).to_csv(
+            filename, mode='a', header=False, index=False)
+        print('Saved response at time', dropped[0], 'to file')
+        # cleanup
+        self.cleanup(filename, 4096)
+        return pandas.DataFrame([dropped])  # dont usually need to return it
+
+    def saveTickerPair(self, pair):  # just save latest:
+        # format of pair: ['crypto', 'fiat']
+        # example (bitcoin): ['xbt', 'usd']
+        form_pair = 'x'+pair[0]+'z'+pair[1]
+        args = ['Ticker', 'pair={}'.format(form_pair)]
+        reply = json.loads(self.main(args))['result'][form_pair]
+
+        filename = pair+'-kraken.csv'
+
+        if not os.path.isfile(filename):  # only add header if file doesnt exist
+            header = list()
+            header.append('unix')
+            for i in reply.items():
+                header.append(i[0])
+            # total.append(header)
+            pandas.DataFrame([header]).to_csv(
+                filename, mode='a', header=False, index=False)
+
+        dropped = list()
+        dropped.append(time.time())
+        for i in reply.values():
+            dropped.append(i[0])
+        print('Recieved response from with', args, '-', dropped)
         # open and delete everything back from the day before
         pandas.DataFrame([dropped]).to_csv(
             filename, mode='a', header=False, index=False)
