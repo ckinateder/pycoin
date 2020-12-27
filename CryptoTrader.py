@@ -98,17 +98,17 @@ class ThreadedTrader:
                     self.usd = self.usd - self.crypto*current_price
                     print(
                         '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)\n'.format(
-                            self.usd, self.pair[0], self.crypto, self.pair[1]))
+                            self.usd, self.pair[1], self.crypto, self.pair[1]))
                 elif decision == 'sell' and self.crypto >= crypto_value:
                     self.usd = self.usd + dollar_value
                     self.crypto = self.crypto - self.usd/current_price
                     print(
                         '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)\n'.format(
-                            self.usd, self.pair[0], self.crypto, self.pair[1]))
+                            self.usd, self.pair[1], self.crypto, self.pair[0]))
                 else:
                     print(
                         '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (holding)\n'.format(
-                            self.usd, self.pair[0], self.crypto, self.pair[1]))
+                            self.usd, self.pair[1], self.crypto, self.pair[0]))
                 # end transaction
             except sklearn.exceptions.NotFittedError:
                 print('* Model not fit yet - waiting til next cycle')
@@ -137,5 +137,5 @@ class ThreadedTrader:
 
 
 threader = ThreadedTrader(
-    pair=['xbt', 'usd'], retrain_every=10, initial_investment=500)
+    pair=['xrp', 'usd'], retrain_every=10, initial_investment=500)
 threader.run()
