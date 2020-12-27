@@ -28,7 +28,7 @@ class ThreadedTrader:
                                                        epochs=13,
                                                        units=256,
                                                        batch_size=1,
-                                                       datafile=self.filename,
+                                                       pair=pair,
                                                        cutpoint=1800,
                                                        important_headers=headers,
                                                        verbose=0)
@@ -67,6 +67,7 @@ class ThreadedTrader:
 
             print('Last model trained at', self.utc_to_local(
                 datetime.utcfromtimestamp(last_time_trained)))
+            print('')
             time.sleep(10)
 
     def saveLoop(self):
@@ -78,8 +79,12 @@ class ThreadedTrader:
                 time.sleep(5)
                 self.trader.saveTickerPair(self.pair)
 
-            self.current_df = self.predictor.createFrame()  # re update frame
-            current_model = self.predictor.loadModel('current-model')
+            try:
+                self.current_df = self.predictor.createFrame()  # re update frame
+                current_model = self.predictor.loadModel()
+            except FileNotFoundError as e:
+                print(
+                    '* Model not found - {} ...'.format(e.args[1]))
             try:
                 # only do this once it can verify last 2400 CONTINUOUS DATA
                 decision = self.predictor.decideAction(
@@ -90,7 +95,7 @@ class ThreadedTrader:
 
                 kraken_fee = self.getFees()['kraken']['maker']/100
 
-                crypto_value = self.usd/current_price  # in btc
+                crypto_value = self.usd/current_price  # in crypto
                 dollar_value = self.crypto*current_price  # in usd
 
                 if decision == 'buy' and self.usd >= dollar_value:
@@ -111,6 +116,9 @@ class ThreadedTrader:
                             self.usd, self.pair[1], self.crypto, self.pair[0]))
                 # end transaction
             except sklearn.exceptions.NotFittedError:
+                print('* Model not fit yet - waiting til next cycle')
+
+            except UnboundLocalError:
                 print('* Model not fit yet - waiting til next cycle')
 
             self.checkMemory()

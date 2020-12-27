@@ -27,9 +27,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 class CryptoPredictor:
 
-    def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, important_headers={'timestamp': 'time', 'price': 'close'}, datafile='', cutpoint=1800, verbose=2):
+    def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, important_headers={'timestamp': 'time', 'price': 'close'}, pair=['xbt', 'usd'], cutpoint=1800, verbose=2):
         self.models_path = 'models/'
-        self.csvset = datafile
+        self.csvset = 'data/'+self.getFilename(pair)
+        self.pair = pair
         self.cutpoint = cutpoint  # only use last x datapoints
         # define headers
         self.important_headers = important_headers
@@ -40,6 +41,9 @@ class CryptoPredictor:
         #self.rcParams['figure.figsize'] = 20,10
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.verbose = verbose  # 0 is silent, 1 is progressbar
+
+    def getFilename(self, pair):
+        return '-'.join(pair)+'_kraken.csv'
 
     def loadCSV(self, filename):
         # read the file
@@ -88,23 +92,26 @@ class CryptoPredictor:
         plt.savefig('chart/'+filename)
         print('Saved plot '+title)
 
-    def saveModel(self, model, filename):
+    def saveModel(self, model):
+        filename = self.getFilename(self.pair)
         # serialize model to JSON
         model_json = model.to_json()
-        with open(self.models_path+filename+'.json', 'w') as json_file:
+        with open(self.models_path+filename+'_kraken-model.json', 'w') as json_file:
             json_file.write(model_json)
         # serialize weights to HDF5
-        model.save_weights(self.models_path+filename+'.h5')
+        model.save_weights(self.models_path+filename+'_kraken-weights.h5')
         print('Saved model to disk')
 
-    def loadModel(self, filename):
+    def loadModel(self):
+        filename = self.getFilename(self.pair)
         # load json and create model
-        json_file = open(self.models_path+filename+'.json', 'r')
+        json_file = open(self.models_path+filename+'_kraken-model.json', 'r')
         loaded_model_json = json_file.read()
         json_file.close()
         loaded_model = model_from_json(loaded_model_json)
         # load weights into new model
-        loaded_model.load_weights(self.models_path+filename+'.h5')
+        loaded_model.load_weights(
+            self.models_path+filename+'_kraken-weights.h5')
         print('Loaded model from disk')
         return loaded_model
 
@@ -206,7 +213,7 @@ class CryptoPredictor:
 
             model, new_data = self.trainModel(
                 df, self.lookback, self.epochs, self.units, self.batch_size)
-            self.saveModel(model, 'current-model')
+            self.saveModel(model)
             print('Model trained and saved in {:.2f}s'.format(
                 time.time()-begin))
             return model
@@ -303,8 +310,8 @@ class CryptoPredictor:
             print('\n'+SPACE_BARS)
             print('@', datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
             print(SPACE_BARS)
-            print('n-1: ${:.2f} (actual)\nn: ${:.2f} (actual)\n\nn-1: ${:.2f} (predicted)\nn: ${:.2f} (predicted)\nn+1: ${:.2f} (predicted)'.format(*raw_vals_list.tolist()))
-            print('\nactual (previous) d/dx: {:.2f}\n\npredicted (previous) d/dx: {:.2f}\npredicted (next) d/dx: {:.2f}'.format(
+            print('n-1: ${:.4f} (actual)\nn: ${:.4f} (actual)\n\nn-1: ${:.4f} (predicted)\nn: ${:.4f} (predicted)\nn+1: ${:.4f} (predicted)'.format(*raw_vals_list.tolist()))
+            print('\nactual (previous) d/dx: {:.4f}\n\npredicted (previous) d/dx: {:.4f}\npredicted (next) d/dx: {:.4f}'.format(
                 actual_last_ddx, last_ddx, next_ddx))
             print('\npredicted action:', decision)
             print(SPACE_BARS, '\n')
