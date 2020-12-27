@@ -19,7 +19,7 @@ class ThreadedTrader:
             'price': 'a'  # the column used for price
         }
         self.usd = initial_investment
-        self.btc = 0
+        self.crypto = 0
         self.pair = pair
         self.filename = self.getFilename(pair)
         self.retrain_every = retrain_every*60
@@ -91,21 +91,24 @@ class ThreadedTrader:
                 kraken_fee = self.getFees()['kraken']['maker']/100
 
                 crypto_value = self.usd/current_price  # in btc
-                dollar_value = self.btc*current_price  # in usd
+                dollar_value = self.crypto*current_price  # in usd
 
                 if decision == 'buy' and self.usd >= dollar_value:
-                    self.btc = self.btc + crypto_value
-                    self.usd = self.usd - self.btc*current_price
+                    self.crypto = self.crypto + crypto_value
+                    self.usd = self.usd - self.crypto*current_price
                     print(
-                        '+ Balance:\n  + {:.2f} USD\n  + {:.8f} BTC\n   (bought)\n'.format(self.usd, self.btc))
-                elif decision == 'sell' and self.btc >= crypto_value:
+                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)\n'.format(
+                            self.usd, self.pair[0], self.crypto, self.pair[1]))
+                elif decision == 'sell' and self.crypto >= crypto_value:
                     self.usd = self.usd + dollar_value
-                    self.btc = self.btc - self.usd/current_price
+                    self.crypto = self.crypto - self.usd/current_price
                     print(
-                        '+ Balance:\n  + {:.2f} USD\n  + {:.8f} BTC\n   (sold)\n'.format(self.usd, self.btc))
+                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)\n'.format(
+                            self.usd, self.pair[0], self.crypto, self.pair[1]))
                 else:
                     print(
-                        '+ Balance:\n  + {:.2f} USD\n  + {:.8f} BTC\n   (holding)\n'.format(self.usd, self.btc))
+                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (holding)\n'.format(
+                            self.usd, self.pair[0], self.crypto, self.pair[1]))
                 # end transaction
             except sklearn.exceptions.NotFittedError:
                 print('* Model not fit yet - waiting til next cycle')
@@ -134,5 +137,5 @@ class ThreadedTrader:
 
 
 threader = ThreadedTrader(
-    ['xbt', 'usd'], retrain_every=10, initial_investment=500)
+    pair=['xbt', 'usd'], retrain_every=10, initial_investment=500)
 threader.run()
