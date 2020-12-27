@@ -11,29 +11,31 @@ import json
 # using crypto compare
 from guppy import hpy
 
-filename = 'data/xbt-usd_kraken.csv'
-
 
 class ThreadedTrader:
-    def __init__(self, filename, retrain_every, initial_investment):
+    def __init__(self, pair, retrain_every, initial_investment):
         headers = {
             'timestamp': 'unix',
             'price': 'a'  # the column used for price
         }
         self.usd = initial_investment
         self.btc = 0
-        self.filename = filename
+        self.pair = pair
+        self.filename = self.getFilename(pair)
         self.retrain_every = retrain_every*60
         self.trader = kraken.KrakenTrader()
         self.predictor = CryptoPredict.CryptoPredictor(lookback=1,
                                                        epochs=13,
                                                        units=256,
                                                        batch_size=1,
-                                                       datafile=filename,
+                                                       datafile=self.filename,
                                                        cutpoint=1800,
                                                        important_headers=headers,
                                                        verbose=0)
         self.current_df = self.predictor.createFrame()
+
+    def getFilename(self, pair):
+        return 'data/'+'-'.join(pair)+'_kraken.csv'
 
     def utc_to_local(self, utc_dt):
         return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
@@ -70,11 +72,11 @@ class ThreadedTrader:
     def saveLoop(self):
         while True:
             try:
-                self.trader.saveTickerPair(['xbt', 'usd'])
+                self.trader.saveTickerPair(self.pair)
             except:
                 print('api call failed...trying again in 5')
                 time.sleep(5)
-                self.trader.saveTickerPair(['xbt', 'usd'])
+                self.trader.saveTickerPair(self.pair)
 
             self.current_df = self.predictor.createFrame()  # re update frame
             current_model = self.predictor.loadModel('current-model')
@@ -131,5 +133,6 @@ class ThreadedTrader:
             print('* Cancelled')
 
 
-threader = ThreadedTrader(filename, retrain_every=10, initial_investment=500)
+threader = ThreadedTrader(
+    ['xbt', 'usd'], retrain_every=10, initial_investment=500)
 threader.run()
