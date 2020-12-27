@@ -10,62 +10,80 @@ An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurren
 
 The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `1`, epochs between `10` and `15`, and units around `256`. I also found that the size of the rolling dataset works best between `1800` to `2400` datapoints. According to graph error, it looks as though the model needs to be retrained every half an hour to an hour at minimum. As far as structure goes – the main class will be `CryptoTrader`. It will incorporate `CrytoPredictor` and `KrakenTrader` and bring them together in one class for a fully functioned release.
 
+### Sample Output (w/ small dataset)
 ```
 $ python3 CryptoTrader.py
 
-Dataset loaded into frame in 0.03s
-lookback = 1 
-epochs = 13 
-units = 256 
-batch_size = 1
+********************************************************************************
+* WARNING: DATASET LENGTH < 1800 (actual = 29)
+* MODEL PERFORMANCE WILL BE SUBOPTIMAL
+********************************************************************************
 
-Epoch 1/13
-2399/2399 [==============================] - 6s 3ms/step - loss: 0.0037
-Epoch 2/13
-2399/2399 [==============================] - 6s 3ms/step - loss: 6.4114e-04
-Epoch 3/13
-2399/2399 [==============================] - 6s 3ms/step - loss: 5.7245e-04
-Epoch 4/13
-2399/2399 [==============================] - 7s 3ms/step - loss: 5.2600e-04
-Epoch 5/13
-2399/2399 [==============================] - 6s 3ms/step - loss: 4.8829e-04
-Epoch 6/13
-2399/2399 [==============================] - 7s 3ms/step - loss: 5.6424e-04
-Epoch 7/13
-2399/2399 [==============================] - 7s 3ms/step - loss: 5.3544e-04
-Epoch 8/13
-2399/2399 [==============================] - 6s 3ms/step - loss: 5.0426e-04
-Epoch 9/13
-2399/2399 [==============================] - 7s 3ms/step - loss: 4.3874e-04
-Epoch 10/13
-2399/2399 [==============================] - 6s 3ms/step - loss: 4.5934e-04
-Epoch 11/13
-2399/2399 [==============================] - 7s 3ms/step - loss: 4.2796e-04
-Epoch 12/13
-2399/2399 [==============================] - 7s 3ms/step - loss: 4.9061e-04
-Epoch 13/13
-2399/2399 [==============================] - 6s 3ms/step - loss: 4.6422e-04
-Saved model to disk
-Model trained and saved in 87.46s
+Dataset loaded into frame in 0.00s
+Loaded model from disk
+Last model trained at 2020-12-27 11:53:02.864641-05:00
 
-Dataset loaded into frame in 0.03s
-------------------------------------
-@ 12/21/2020 12:54:03
-------------------------------
-n-1: $22790.10 (actual)
-n: $22793.50 (actual)
+--------------------------------------------------------------------------------
+@ 12/27/2020 11:53:27
+--------------------------------------------------------------------------------
+n-1: $26709.60 (actual)
+n: $26701.80 (actual)
 
-n-1: $22784.17 (predicted)
-n: $22787.66 (predicted)
-n+1: $22787.66 (predicted)
+n-1: $26722.85 (predicted)
+n: $26699.83 (predicted)
+n+1: $26719.16 (predicted)
 
-actual (previous) d/dx: 0.34
+actual (previous) d/dx: -0.78
 
-predicted (previous) d/dx: 0.35
-predicted (next) d/dx: 0.00
+predicted (previous) d/dx: -2.30
+predicted (next) d/dx: 1.93
+
+predicted action: buy
+-------------------------------------------------------------------------------- 
+
++ Balance:
+  + 0.00 USD
+  + 0.01872533 BTC
+   (bought)
+
+* Using 399.57 MB of memory
+
+Last model trained at 2020-12-27 11:53:02.864641-05:00
++ Recieved response with ['Ticker', 'pair=xxbtzusd'] - [1609088018.161651, '26718.40000', '26706.40000', '26706.50000', '10654.96793825', '27264.32520', 59483, '26245.90000', '28353.20000', '2']
++ Saved response at time 2020-12-27 11:53:38.161651-05:00 to file data/xbt-usd_kraken.csv
+
+********************************************************************************
+* WARNING: DATASET LENGTH < 1800 (actual = 30)
+* MODEL PERFORMANCE WILL BE SUBOPTIMAL
+********************************************************************************
+
+Dataset loaded into frame in 0.00s
+Loaded model from disk
+
+--------------------------------------------------------------------------------
+@ 12/27/2020 11:53:39
+--------------------------------------------------------------------------------
+n-1: $26701.80 (actual)
+n: $26718.40 (actual)
+
+n-1: $26699.83 (predicted)
+n: $26719.16 (predicted)
+n+1: $26713.58 (predicted)
+
+actual (previous) d/dx: 1.66
+
+predicted (previous) d/dx: 1.93
+predicted (next) d/dx: -0.56
 
 predicted action: sell
------------------------------------- 
+-------------------------------------------------------------------------------- 
+
++ Balance:
+  + 500.31 USD
+  + 0.00000000 BTC
+   (sold)
+
+* Using 407.32 MB of memory
 ```
 
 ### Charts

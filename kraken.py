@@ -20,25 +20,26 @@ import json
 import os
 import pandas
 import csv
+from datetime import datetime, timezone
 
 
 class KrakenTrader:
     def __init__(self):
-        self.api_public = {"Time", "Assets", "AssetPairs",
-                           "Ticker", "OHLC", "Depth", "Trades", "Spread"}
-        self.api_private = {"Balance", "BalanceEx", "TradeBalance", "OpenOrders", "ClosedOrders", "QueryOrders", "TradesHistory", "QueryTrades",
-                            "OpenPositions", "Ledgers", "QueryLedgers", "TradeVolume", "AddExport", "ExportStatus", "RetrieveExport", "RemoveExport", "GetWebSocketsToken"}
-        self.api_trading = {"AddOrder", "CancelOrder", "CancelAll"}
-        self.api_funding = {"DepositMethods", "DepositAddresses", "DepositStatus",
-                            "WithdrawInfo", "Withdraw", "WithdrawStatus", "WithdrawCancel", "WalletTransfer"}
+        self.api_public = {'Time', 'Assets', 'AssetPairs',
+                           'Ticker', 'OHLC', 'Depth', 'Trades', 'Spread'}
+        self.api_private = {'Balance', 'BalanceEx', 'TradeBalance', 'OpenOrders', 'ClosedOrders', 'QueryOrders', 'TradesHistory', 'QueryTrades',
+                            'OpenPositions', 'Ledgers', 'QueryLedgers', 'TradeVolume', 'AddExport', 'ExportStatus', 'RetrieveExport', 'RemoveExport', 'GetWebSocketsToken'}
+        self.api_trading = {'AddOrder', 'CancelOrder', 'CancelAll'}
+        self.api_funding = {'DepositMethods', 'DepositAddresses', 'DepositStatus',
+                            'WithdrawInfo', 'Withdraw', 'WithdrawStatus', 'WithdrawCancel', 'WalletTransfer'}
 
-        self.api_domain = "https://api.kraken.com"
+        self.api_domain = 'https://api.kraken.com'
 
     def main(self, args):
-        api_data = ""
+        api_data = ''
         args = ['']+args  # for the stupid sys.argv conversion -- fix later
         if len(args) < 2:
-            api_method = "Time"
+            api_method = 'Time'
         elif len(args) == 2:
             api_method = args[1]
         else:
@@ -47,19 +48,19 @@ class KrakenTrader:
                 if count == 2:
                     api_data = args[count]
                 else:
-                    api_data = api_data + "&" + args[count]
+                    api_data = api_data + '&' + args[count]
         # print(args)
         if api_method in self.api_private or api_method in self.api_trading or api_method in self.api_funding:
-            api_path = "/0/private/"
+            api_path = '/0/private/'
             api_nonce = str(int(time.time()*1000))
             try:
-                api_key = open("keys/kraken_public").read().strip()
+                api_key = open('keys/kraken_public').read().strip()
                 api_secret = base64.b64decode(
-                    open("keys/kraken_private").read().strip())
+                    open('keys/kraken_private').read().strip())
             except:
-                print("API public key and API private (secret) key must be in text files in keys/ called kraken_public and kraken_private")
+                print('API public key and API private (secret) key must be in text files in keys/ called kraken_public and kraken_private')
                 sys.exit(1)
-            api_postdata = api_data + "&nonce=" + api_nonce
+            api_postdata = api_data + '&nonce=' + api_nonce
             api_postdata = api_postdata.encode('utf-8')
             api_sha256 = hashlib.sha256(
                 api_nonce.encode('utf-8') + api_postdata).digest()
@@ -67,24 +68,24 @@ class KrakenTrader:
                 'utf-8') + api_method.encode('utf-8') + api_sha256, hashlib.sha512)
             api_request = urllib2.Request(
                 self.api_domain + api_path + api_method, api_postdata)
-            api_request.add_header("API-Key", api_key)
+            api_request.add_header('API-Key', api_key)
             api_request.add_header(
-                "API-Sign", base64.b64encode(api_hmacsha512.digest()))
-            api_request.add_header("User-Agent", "Kraken REST API")
+                'API-Sign', base64.b64encode(api_hmacsha512.digest()))
+            api_request.add_header('User-Agent', 'Kraken REST API')
         elif api_method in self.api_public:
-            api_path = "/0/public/"
+            api_path = '/0/public/'
             api_request = urllib2.Request(
                 self.api_domain + api_path + api_method + '?' + api_data)
-            api_request.add_header("User-Agent", "Kraken REST API")
+            api_request.add_header('User-Agent', 'Kraken REST API')
         else:
-            print("Usage: %s method [parameters]" % args[0])
-            print("Example: %s OHLC pair=xbtusd interval=1440" % args[0])
+            print('Usage: %s method [parameters]' % args[0])
+            print('Example: %s OHLC pair=xbtusd interval=1440' % args[0])
             sys.exit(1)
 
         try:
             api_reply = urllib2.urlopen(api_request).read()
         except Exception as error:
-            print("API call failed (%s)" % error)
+            print('API call failed (%s)' % error)
             sys.exit(1)
 
         try:
@@ -93,7 +94,7 @@ class KrakenTrader:
             if api_method == 'RetrieveExport':
                 sys.stdout.buffer.write(api_reply)
                 sys.exit(0)
-            print("API response invalid (%s)" % error)
+            print('API response invalid (%s)' % error)
             sys.exit(1)
 
         if '"error":[]' in api_reply:
@@ -101,7 +102,7 @@ class KrakenTrader:
             return api_reply
             # sys.exit(0)
         else:
-            print(api_reply)
+            print('* Something may be wrong ...\n', api_reply)
             return api_reply
             # sys.exit(1)
 
@@ -116,40 +117,17 @@ class KrakenTrader:
             parsed.to_csv(filename, index=False)
             # drop early rows and then rewrite NOT APPEND
 
-    def saveBTC(self, filename):  # just save latest:
-        args = ['Ticker', 'pair=xxbtzusd']
-        reply = json.loads(self.main(args))['result']['XXBTZUSD']
-
-        if not os.path.isfile(filename):  # only add header if file doesnt exist
-            header = list()
-            header.append('unix')
-            for i in reply.items():
-                header.append(i[0])
-            # total.append(header)
-            pandas.DataFrame([header]).to_csv(
-                filename, mode='a', header=False, index=False)
-
-        dropped = list()
-        dropped.append(time.time())
-        for i in reply.values():
-            dropped.append(i[0])
-        print('Recieved response from with', args, '-', dropped)
-        # open and delete everything back from the day before
-        pandas.DataFrame([dropped]).to_csv(
-            filename, mode='a', header=False, index=False)
-        print('Saved response at time', dropped[0], 'to file')
-        # cleanup
-        self.cleanup(filename, 4096)
-        return pandas.DataFrame([dropped])  # dont usually need to return it
+    def utc_to_local(self, utc_dt):
+        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
     def saveTickerPair(self, pair):  # just save latest:
         # format of pair: ['crypto', 'fiat']
         # example (bitcoin): ['xbt', 'usd']
         form_pair = 'x'+pair[0]+'z'+pair[1]
         args = ['Ticker', 'pair={}'.format(form_pair)]
-        reply = json.loads(self.main(args))['result'][form_pair]
+        reply = json.loads(self.main(args))['result'][form_pair.upper()]
 
-        filename = pair+'-kraken.csv'
+        filename = 'data/'+'-'.join(pair)+'_kraken.csv'
 
         if not os.path.isfile(filename):  # only add header if file doesnt exist
             header = list()
@@ -164,20 +142,12 @@ class KrakenTrader:
         dropped.append(time.time())
         for i in reply.values():
             dropped.append(i[0])
-        print('Recieved response from with', args, '-', dropped)
+        print('+ Recieved response with', args, '-', dropped)
         # open and delete everything back from the day before
         pandas.DataFrame([dropped]).to_csv(
             filename, mode='a', header=False, index=False)
-        print('Saved response at time', dropped[0], 'to file')
+        print('+ Saved response at time', self.utc_to_local(
+            datetime.utcfromtimestamp(dropped[0])), 'to file', filename)
         # cleanup
         self.cleanup(filename, 4096)
         return pandas.DataFrame([dropped])  # dont usually need to return it
-
-    def saveBTCLOOP(self, filename):
-        while True:
-            try:
-                self.saveBTC(filename)
-                time.sleep(10)
-            except:
-                print('Call failed... trying again in 2')
-                time.sleep(2)

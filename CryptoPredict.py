@@ -12,12 +12,17 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 import sys
+import os
 # setting figure size
 
 WIDTH = 80
 
 WARN_BARS = '*'*WIDTH
 SPACE_BARS = '-'*WIDTH
+
+print(WARN_BARS, '\n* SUPRESSING KERAS WARNINGS - PROCEED W/ CAUTION')
+print(WARN_BARS)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 class CryptoPredictor:

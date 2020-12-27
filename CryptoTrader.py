@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import CryptoPredict
 import time
 import kraken
@@ -11,7 +11,7 @@ import json
 # using crypto compare
 from guppy import hpy
 
-filename = 'data/kraken.csv'
+filename = 'data/xbt-usd_kraken.csv'
 
 
 class ThreadedTrader:
@@ -35,6 +35,9 @@ class ThreadedTrader:
                                                        verbose=0)
         self.current_df = self.predictor.createFrame()
 
+    def utc_to_local(self, utc_dt):
+        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
     def getFees(self):
         # open file with json of fees and return dict of fees for the prices keys
         with open('data/fees.json', 'r') as jfees:
@@ -57,21 +60,21 @@ class ThreadedTrader:
         while True:
             if (time.time() - last_time_trained) > self.retrain_every or last_time_trained == 0:
                 last_time_trained = time.time()
-                print('* Retraining model ...')
+                print('* Retraining model ...\n')
                 self.predictor.retrainModel(self.current_df)
 
-            print('Last model trained at', datetime.datetime.utcfromtimestamp(
-                last_time_trained).strftime('%Y-%m-%d %H:%M:%S'), 'UTC')
+            print('Last model trained at', self.utc_to_local(
+                datetime.utcfromtimestamp(last_time_trained)))
             time.sleep(10)
 
     def saveLoop(self):
         while True:
             try:
-                self.trader.saveBTC(filename)
+                self.trader.saveTickerPair(['xbt', 'usd'])
             except:
                 print('api call failed...trying again in 5')
                 time.sleep(5)
-                self.trader.saveBTC(filename)
+                self.trader.saveTickerPair(['xbt', 'usd'])
 
             self.current_df = self.predictor.createFrame()  # re update frame
             current_model = self.predictor.loadModel('current-model')
