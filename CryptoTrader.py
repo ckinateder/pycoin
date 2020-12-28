@@ -149,7 +149,7 @@ if __name__ == '__main__':
     }
 
     if len(sys.argv) == 4:
-        pair = sys.argv[1:2]
+        pair = sys.argv[1:3]
         invest = sys.argv[3]
     else:
         # default
