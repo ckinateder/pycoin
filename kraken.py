@@ -24,6 +24,30 @@ from datetime import datetime, timezone
 
 
 class KrakenTrader:
+    '''
+    A class to handle the api calls for kraken.
+
+    all ticker pairs: 
+    ADAETH,ADAEUR,ADAUSD,ADAXBT,ALGOETH,ALGOEUR,ALGOUSD,ALGOXBT,ATOMETH,
+    ATOMEUR,ATOMUSD,ATOMXBT,BATETH,BATEUR,BATUSD,BATXBT,BCHEUR,BCHUSD,BCHXBT,
+    DAIEUR,DAIUSD,DAIUSDT,DASHEUR,DASHUSD,DASHXBT,EOSETH,EOSEUR,EOSUSD,EOSXBT,
+    ETHCHF,ETHDAI,ETHUSDC,ETHUSDT,EURCAD,EURCHF,EURGBP,EURJPY,GNOETH,GNOEUR,
+    GNOUSD,GNOXBT,ICXETH,ICXEUR,ICXUSD,ICXXBT,LINKETH,LINKEUR,LINKUSD,LINKXBT,
+    LSKETH,LSKEUR,LSKUSD,LSKXBT,NANOETH,NANOEUR,NANOUSD,NANOXBT,OMGETH,OMGEUR,
+    OMGUSD,OMGXBT,PAXGETH,PAXGEUR,PAXGUSD,PAXGXBT,QTUMETH,QTUMEUR,QTUMUSD,
+    QTUMXBT,SCETH,SCEUR,SCUSD,SCXBT,TRXETH,TRXEUR,TRXUSD,TRXXBT,USDCEUR,USDCHF,
+    USDCUSD,USDCUSDT,USDTCAD,USDTEUR,USDTGBP,USDTZUSD,WAVESETH,WAVESEUR,
+    WAVESUSD,WAVESXBT,XBTCHF,XBTDAI,XBTUSDC,XBTUSDT,XDGEUR,XDGUSD,XETCXETH,
+    XETCXXBT,XETCZEUR,XETCZUSD,XETHXXBT,XETHXXBT.d,XETHZCAD,XETHZCAD.d,
+    XETHZEUR,XETHZEUR.d,XETHZGBP,XETHZGBP.d,XETHZJPY,XETHZJPY.d,XETHZUSD,
+    XETHZUSD.d,XLTCXXBT,XLTCZEUR,XLTCZUSD,XMLNXETH,XMLNXXBT,XMLNZEUR,XMLNZUSD,
+    XREPXETH,XREPXXBT,XREPZEUR,XREPZUSD,XTZETH,XTZEUR,XTZUSD,XTZXBT,XXBTZCAD,
+    XXBTZCAD.d,XXBTZEUR,XXBTZEUR.d,XXBTZGBP,XXBTZGBP.d,XXBTZJPY,XXBTZJPY.d,
+    XXBTZUSD,XXBTZUSD.d,XXDGXXBT,XXLMXXBT,XXLMZEUR,XXLMZUSD,XXMRXXBT,XXMRZEUR
+    ,XXMRZUSD,XXRPXXBT,XXRPZCAD,XXRPZEUR,XXRPZJPY,XXRPZUSD,XZECXXBT,XZECZEUR,
+    XZECZUSD,ZEURZUSD,ZGBPZUSD,ZUSDZCAD,ZUSDZJPY
+    '''
+
     def __init__(self):
         self.api_public = {'Time', 'Assets', 'AssetPairs',
                            'Ticker', 'OHLC', 'Depth', 'Trades', 'Spread'}
@@ -129,37 +153,74 @@ class KrakenTrader:
         '''
         return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
-    def saveTickerPair(self, pair):  # just save latest:
+    def saveTickerPair(self, pair, override=[]):  # just save latest:
         '''
         Saves any valid ticker pair to file.
         - format of pair: ['crypto', 'fiat']
         - example (bitcoin): ['xbt', 'usd']
+        Override is to pass a separate stringpair and filename to
+        send to the API. 
+        example - [\'xxbtzusd\', \'data/different_file.csv\']
         '''
-        form_pair = 'x'+pair[0]+'z'+pair[1]
-        args = ['Ticker', 'pair={}'.format(form_pair)]
-        reply = json.loads(self.main(args))['result'][form_pair.upper()]
+        if not override:
+            form_pair = 'x'+pair[0]+'z'+pair[1]
+            args = ['Ticker', 'pair={}'.format(form_pair)]
+            reply = json.loads(self.main(args))['result'][form_pair.upper()]
 
-        filename = 'data/'+'-'.join(pair)+'_kraken.csv'
+            filename = 'data/'+'-'.join(pair)+'_kraken.csv'
 
-        if not os.path.isfile(filename):  # only add header if file doesnt exist
-            header = list()
-            header.append('unix')
-            for i in reply.items():
-                header.append(i[0])
-            # total.append(header)
-            pandas.DataFrame([header]).to_csv(
+            # only add header if file doesnt exist
+            if not os.path.isfile(filename):
+                header = list()
+                header.append('unix')
+                for i in reply.items():
+                    header.append(i[0])
+                # total.append(header)
+                pandas.DataFrame([header]).to_csv(
+                    filename, mode='a', header=False, index=False)
+
+            dropped = list()
+            dropped.append(time.time())
+            for i in reply.values():
+                dropped.append(i[0])
+            print('+ Recieved response with', args)  # +':', dropped)
+            # open and delete everything back from the day before
+            pandas.DataFrame([dropped]).to_csv(
                 filename, mode='a', header=False, index=False)
+            print('+ Saved response at time', self.utc_to_local(
+                datetime.utcfromtimestamp(dropped[0])), 'to file', filename)
+            # cleanup
+            self.cleanup(filename, 4096)
+            # dont usually need to return it
+            return pandas.DataFrame([dropped])
+        else:
+            form_pair = override[0]
+            args = ['Ticker', 'pair={}'.format(form_pair)]
+            reply = json.loads(self.main(args))['result'][form_pair.upper()]
 
-        dropped = list()
-        dropped.append(time.time())
-        for i in reply.values():
-            dropped.append(i[0])
-        print('+ Recieved response with', args)  # +':', dropped)
-        # open and delete everything back from the day before
-        pandas.DataFrame([dropped]).to_csv(
-            filename, mode='a', header=False, index=False)
-        print('+ Saved response at time', self.utc_to_local(
-            datetime.utcfromtimestamp(dropped[0])), 'to file', filename)
-        # cleanup
-        self.cleanup(filename, 4096)
-        return pandas.DataFrame([dropped])  # dont usually need to return it
+            filename = override[1]
+
+            # only add header if file doesnt exist
+            if not os.path.isfile(filename):
+                header = list()
+                header.append('unix')
+                for i in reply.items():
+                    header.append(i[0])
+                # total.append(header)
+                pandas.DataFrame([header]).to_csv(
+                    filename, mode='a', header=False, index=False)
+
+            dropped = list()
+            dropped.append(time.time())
+            for i in reply.values():
+                dropped.append(i[0])
+            print('+ Recieved response with', args)  # +':', dropped)
+            # open and delete everything back from the day before
+            pandas.DataFrame([dropped]).to_csv(
+                filename, mode='a', header=False, index=False)
+            print('+ Saved response at time', self.utc_to_local(
+                datetime.utcfromtimestamp(dropped[0])), 'to file', filename)
+            # cleanup
+            self.cleanup(filename, 4096)
+            # dont usually need to return it
+            return pandas.DataFrame([dropped])
