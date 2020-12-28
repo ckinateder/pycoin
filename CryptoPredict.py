@@ -29,7 +29,7 @@ class CryptoPredictor:
 
     def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, important_headers={'timestamp': 'time', 'price': 'close'}, pair=['xbt', 'usd'], cutpoint=1800, verbose=2):
         self.models_path = 'models/'
-        self.csvset = 'data/'+self.getFilename(pair)
+        self.csvset = 'data/'+self.getFilename(pair)+'.csv'
         self.pair = pair
         self.cutpoint = cutpoint  # only use last x datapoints
         # define headers
@@ -43,7 +43,7 @@ class CryptoPredictor:
         self.verbose = verbose  # 0 is silent, 1 is progressbar
 
     def getFilename(self, pair):
-        return '-'.join(pair)+'_kraken.csv'
+        return '-'.join(pair)+'_kraken'
 
     def loadCSV(self, filename):
         # read the file
@@ -96,22 +96,22 @@ class CryptoPredictor:
         filename = self.getFilename(self.pair)
         # serialize model to JSON
         model_json = model.to_json()
-        with open(self.models_path+filename+'_kraken-model.json', 'w') as json_file:
+        with open(self.models_path+filename+'-model.json', 'w') as json_file:
             json_file.write(model_json)
         # serialize weights to HDF5
-        model.save_weights(self.models_path+filename+'_kraken-weights.h5')
+        model.save_weights(self.models_path+filename+'-weights.h5')
         print('Saved model to disk')
 
     def loadModel(self):
         filename = self.getFilename(self.pair)
         # load json and create model
-        json_file = open(self.models_path+filename+'_kraken-model.json', 'r')
+        json_file = open(self.models_path+filename+'-model.json', 'r')
         loaded_model_json = json_file.read()
         json_file.close()
         loaded_model = model_from_json(loaded_model_json)
         # load weights into new model
         loaded_model.load_weights(
-            self.models_path+filename+'_kraken-weights.h5')
+            self.models_path+filename+'-weights.h5')
         print('Loaded model from disk')
         return loaded_model
 

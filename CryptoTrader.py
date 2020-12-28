@@ -8,17 +8,14 @@ import os
 import sklearn
 import sys
 import json
-# using crypto compare
 from guppy import hpy
 
 
 class ThreadedTrader:
-    def __init__(self, pair, retrain_every, initial_investment):
-        headers = {
-            'timestamp': 'unix',
-            'price': 'a'  # the column used for price
-        }
+    def __init__(self, pair, headers, retrain_every, initial_investment):
+        self.headers = headers
         self.usd = initial_investment
+        self.initial_investment = initial_investment
         self.crypto = 0
         self.pair = pair
         self.filename = self.getFilename(pair)
@@ -83,6 +80,7 @@ class ThreadedTrader:
                 self.current_df = self.predictor.createFrame()  # re update frame
                 current_model = self.predictor.loadModel()
             except FileNotFoundError as e:
+                print(e)
                 print(
                     '* Model not found - {} ...'.format(e.args[1]))
             try:
@@ -91,10 +89,7 @@ class ThreadedTrader:
                     self.current_df, current_model)
 
                 # buy or sell here
-                current_price = self.current_df.iloc[-1].a
-
-                kraken_fee = self.getFees()['kraken']['maker']/100
-
+                current_price = self.current_df.iloc[-1][headers['price']]
                 crypto_value = self.usd/current_price  # in crypto
                 dollar_value = self.crypto*current_price  # in usd
 
@@ -102,18 +97,21 @@ class ThreadedTrader:
                     self.crypto = self.crypto + crypto_value
                     self.usd = self.usd - self.crypto*current_price
                     print(
-                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)\n'.format(
-                            self.usd, self.pair[1], self.crypto, self.pair[1]))
+                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
+                            self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                 elif decision == 'sell' and self.crypto >= crypto_value:
                     self.usd = self.usd + dollar_value
                     self.crypto = self.crypto - self.usd/current_price
                     print(
-                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)\n'.format(
-                            self.usd, self.pair[1], self.crypto, self.pair[0]))
+                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                            self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                 else:
                     print(
-                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (holding)\n'.format(
-                            self.usd, self.pair[1], self.crypto, self.pair[0]))
+                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (holding)'.format(
+                            self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                total_net = (((self.usd/self.initial_investment) +
+                              ((self.crypto*current_price)/self.initial_investment))*100)-100
+                print('+ Total net: {:.3f}%\n'.format(total_net))
                 # end transaction
             except sklearn.exceptions.NotFittedError:
                 print('* Model not fit yet - waiting til next cycle')
@@ -144,6 +142,17 @@ class ThreadedTrader:
             print('* Cancelled')
 
 
-threader = ThreadedTrader(
-    pair=['xrp', 'usd'], retrain_every=10, initial_investment=500)
-threader.run()
+if __name__ == '__main__':
+    headers = {
+        'timestamp': 'unix',
+        'price': 'a'  # the column used for price
+    }
+
+    if len(sys.argv) == 3:
+        pair = sys.argv[1:]
+    else:
+        pair = ['xbt', 'usd']
+
+    threader = ThreadedTrader(
+        pair=pair, headers=headers, retrain_every=10, initial_investment=500)
+    threader.run()

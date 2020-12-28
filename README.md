@@ -4,7 +4,7 @@ PyCoin is an automated cryptocurrency trading application. Right now it is just 
 
 ## Intramarket
 
-An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurrency was chosen over the stock market due to the limits on trading frequency with less than $25K in your portfolio. The goal of this algorithm is to predict with a >51% gain or loss on bitcoin within the second and then make a trade based on that data.
+An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurrency was chosen over the stock market due to the limits on trading frequency with less than $25K in your portfolio. The goal of this algorithm is to predict a gain or loss on bitcoin within the next second and then make a trade based on that data.
 
 ### Trading Logic
 
