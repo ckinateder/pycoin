@@ -26,7 +26,7 @@ class ThreadedTrader:
                                                        units=256,
                                                        batch_size=1,
                                                        pair=pair,
-                                                       cutpoint=1800,
+                                                       cutpoint=2400,
                                                        important_headers=headers,
                                                        verbose=0)
         self.current_df = self.predictor.createFrame()
@@ -139,16 +139,23 @@ class ThreadedTrader:
 
 
 if __name__ == '__main__':
+    '''
+    Sample call -
+    $ python3 CryptoTrader.py xbt usd 500
+    '''
     headers = {
         'timestamp': 'unix',
         'price': 'a'  # the column used for price
     }
 
-    if len(sys.argv) == 3:
-        pair = sys.argv[1:]
+    if len(sys.argv) == 4:
+        pair = sys.argv[1:2]
+        invest = sys.argv[3]
     else:
+        # default
         pair = ['xbt', 'usd']
+        invest = 500
 
     threader = ThreadedTrader(
-        pair=pair, headers=headers, retrain_every=10, initial_investment=500)
+        pair=pair, headers=headers, retrain_every=10, initial_investment=invest)
     threader.run()
