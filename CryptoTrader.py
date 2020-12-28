@@ -34,9 +34,6 @@ class ThreadedTrader:
     def getFilename(self, pair):
         return 'data/'+'-'.join(pair)+'_kraken.csv'
 
-    def utc_to_local(self, utc_dt):
-        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
-
     def getFees(self):
         # open file with json of fees and return dict of fees for the prices keys
         with open('data/fees.json', 'r') as jfees:
@@ -62,7 +59,7 @@ class ThreadedTrader:
                 print('* Retraining model ...\n')
                 self.predictor.retrainModel(self.current_df)
 
-            print('Last model trained at', self.utc_to_local(
+            print('Last model trained at', self.trader.utc_to_local(
                 datetime.utcfromtimestamp(last_time_trained)))
             print('')
             time.sleep(10)
@@ -120,7 +117,6 @@ class ThreadedTrader:
                 print('* Model not fit yet - waiting til next cycle')
 
             self.checkMemory()
-
             time.sleep(10)
 
     def run(self):

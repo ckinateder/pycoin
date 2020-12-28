@@ -36,6 +36,9 @@ class KrakenTrader:
         self.api_domain = 'https://api.kraken.com'
 
     def main(self, args):
+        '''
+        Responsible for handling the calls to the API at \'https://api.kraken.com\'.
+        '''
         api_data = ''
         args = ['']+args  # for the stupid sys.argv conversion -- fix later
         if len(args) < 2:
@@ -107,6 +110,9 @@ class KrakenTrader:
             # sys.exit(1)
 
     def cleanup(self, filename, how_far_back):
+        '''
+        Cleans up the file so it doesn't overflow memory.
+        '''
         num_lines = sum(1 for line in open(filename))
         if num_lines > how_far_back:
             whole_file = pandas.read_csv(filename)
@@ -118,11 +124,17 @@ class KrakenTrader:
             # drop early rows and then rewrite NOT APPEND
 
     def utc_to_local(self, utc_dt):
+        '''
+        Converts UTC time to local timezone.
+        '''
         return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
     def saveTickerPair(self, pair):  # just save latest:
-        # format of pair: ['crypto', 'fiat']
-        # example (bitcoin): ['xbt', 'usd']
+        '''
+        Saves any valid ticker pair to file.
+        - format of pair: ['crypto', 'fiat']
+        - example (bitcoin): ['xbt', 'usd']
+        '''
         form_pair = 'x'+pair[0]+'z'+pair[1]
         args = ['Ticker', 'pair={}'.format(form_pair)]
         reply = json.loads(self.main(args))['result'][form_pair.upper()]
