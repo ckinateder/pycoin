@@ -30,6 +30,7 @@ class ThreadedTrader:
                                                        important_headers=headers,
                                                        verbose=0)
         self.current_df = self.predictor.createFrame()
+        self.smallest_size = 1800
 
     def getFilename(self, pair):
         return 'data/'+'-'.join(pair)+'_kraken.csv'
@@ -54,13 +55,16 @@ class ThreadedTrader:
         # RETRAIN
         last_time_trained = 0
         while True:
-            if (time.time() - last_time_trained) > self.retrain_every or last_time_trained == 0:
+            if ((time.time() - last_time_trained) > self.retrain_every or last_time_trained == 0) and len(self.current_df) >= self.smallest_size:
                 last_time_trained = time.time()
                 print('* Retraining model ...\n')
                 self.predictor.retrainModel(self.current_df)
 
-            print('Last model trained at', self.k_trader.utc_to_local(
-                datetime.utcfromtimestamp(last_time_trained)))
+            if last_time_trained != 0:
+                print('Last model trained at', self.k_trader.utc_to_local(
+                    datetime.utcfromtimestamp(last_time_trained)))
+            else:
+                print('Model not trained yet ...')
             print('')
             time.sleep(10)
 
@@ -73,48 +77,51 @@ class ThreadedTrader:
                 time.sleep(5)
                 self.k_trader.saveTickerPair(self.pair)
 
-            try:
-                self.current_df = self.predictor.createFrame()  # re update frame
-                current_model = self.predictor.loadModel()
-            except FileNotFoundError as e:
-                print(e)
-                print(
-                    '* Model not found - {} ...'.format(e.args[1]))
-            try:
-                # only do this once it can verify last 2400 CONTINUOUS DATA
-                decision = self.predictor.decideAction(
-                    self.current_df, current_model)
+            self.current_df = self.predictor.createFrame()  # re update frame
 
-                # buy or sell here
-                current_price = self.current_df.iloc[-1][headers['price']]
-                crypto_value = self.usd/current_price  # in crypto
-                dollar_value = self.crypto*current_price  # in usd
+            try:
+                if len(self.current_df) >= self.smallest_size:
+                    current_model = self.predictor.loadModel()
+                    # only do this once it can verify last 2400 CONTINUOUS DATA
+                    decision = self.predictor.decideAction(
+                        self.current_df, current_model)
 
-                if decision == 'buy' and self.usd >= dollar_value:
-                    self.crypto = self.crypto + crypto_value
-                    self.usd = self.usd - self.crypto*current_price
-                    print(
-                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
-                            self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
-                elif decision == 'sell' and self.crypto >= crypto_value:
-                    self.usd = self.usd + dollar_value
-                    self.crypto = self.crypto - self.usd/current_price
-                    print(
-                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                            self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                    # buy or sell here
+                    current_price = self.current_df.iloc[-1][headers['price']]
+                    crypto_value = self.usd/current_price  # in crypto
+                    dollar_value = self.crypto*current_price  # in usd
+
+                    if decision == 'buy' and self.usd >= dollar_value:
+                        self.crypto = self.crypto + crypto_value
+                        self.usd = self.usd - self.crypto*current_price
+                        print(
+                            '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
+                                self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                    elif decision == 'sell' and self.crypto >= crypto_value:
+                        self.usd = self.usd + dollar_value
+                        self.crypto = self.crypto - self.usd/current_price
+                        print(
+                            '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                                self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                    else:
+                        print(
+                            '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
+                                self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper(), dollar_value))
+                    total_net = (((self.usd/self.initial_investment) +
+                                  ((self.crypto*current_price)/self.initial_investment))*100)-100
+                    print('+ Total net: {:.3f}%\n'.format(total_net))
+                    # end transaction
                 else:
                     print(
-                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
-                            self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper(), dollar_value))
-                total_net = (((self.usd/self.initial_investment) +
-                              ((self.crypto*current_price)/self.initial_investment))*100)-100
-                print('+ Total net: {:.3f}%\n'.format(total_net))
-                # end transaction
+                        '* Not predicting, dataset not big enough ({} < {})'.format(len(self.current_df), self.smallest_size))
             except sklearn.exceptions.NotFittedError:
                 print('* Model not fit yet - waiting til next cycle')
 
             except UnboundLocalError:
                 print('* Model not fit yet - waiting til next cycle')
+            except FileNotFoundError as e:
+                print(
+                    '* Model not found - {} ...'.format(e))
 
             self.checkMemory()
             time.sleep(10)
@@ -153,8 +160,10 @@ if __name__ == '__main__':
         invest = float(sys.argv[3])
     else:
         # default
+        print('Not enough arguments given - must be in format\n  $ python3 CryptoTrader.py (crypto) (usd) (amount to invest)')
         pair = ['xbt', 'usd']
         invest = 500
+        print('Using default values: {} and ${}'.format(pair, invest))
 
     threader = ThreadedTrader(
         pair=pair, headers=headers, retrain_every=10, initial_investment=invest)
