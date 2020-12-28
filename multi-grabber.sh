@@ -1,6 +1,6 @@
 #!/bin/bash
-python3 CryptoTrader.py eth usd &
-python3 CryptoTrader.py ltc usd &
-python3 CryptoTrader.py xbt usd &
-python3 CryptoTrader.py xrp usd &
-python3 CryptoTrader.py rep usd && fg
+python3 kraken_grabber.py eth usd &
+python3 kraken_grabber.py ltc usd &
+python3 kraken_grabber.py xbt usd &
+python3 kraken_grabber.py xrp usd &
+python3 kraken_grabber.py rep usd && fg
