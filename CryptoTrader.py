@@ -104,8 +104,8 @@ class ThreadedTrader:
                             self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                 else:
                     print(
-                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (holding)'.format(
-                            self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
+                            self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper(), dollar_value))
                 total_net = (((self.usd/self.initial_investment) +
                               ((self.crypto*current_price)/self.initial_investment))*100)-100
                 print('+ Total net: {:.3f}%\n'.format(total_net))
