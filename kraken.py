@@ -168,31 +168,6 @@ class KrakenTrader:
             reply = json.loads(self.main(args))['result'][form_pair.upper()]
 
             filename = 'data/'+'-'.join(pair)+'_kraken.csv'
-
-            # only add header if file doesnt exist
-            if not os.path.isfile(filename):
-                header = list()
-                header.append('unix')
-                for i in reply.items():
-                    header.append(i[0])
-                # total.append(header)
-                pandas.DataFrame([header]).to_csv(
-                    filename, mode='a', header=False, index=False)
-
-            dropped = list()
-            dropped.append(time.time())
-            for i in reply.values():
-                dropped.append(i[0])
-            print('+ Recieved response with', args)  # +':', dropped)
-            # open and delete everything back from the day before
-            pandas.DataFrame([dropped]).to_csv(
-                filename, mode='a', header=False, index=False)
-            print('+ Saved response at time', self.utc_to_local(
-                datetime.utcfromtimestamp(dropped[0])), 'to file', filename)
-            # cleanup
-            self.cleanup(filename, 4096)
-            # dont usually need to return it
-            return pandas.DataFrame([dropped])
         else:
             form_pair = override[0]
             args = ['Ticker', 'pair={}'.format(form_pair)]
@@ -200,27 +175,27 @@ class KrakenTrader:
 
             filename = override[1]
 
-            # only add header if file doesnt exist
-            if not os.path.isfile(filename):
-                header = list()
-                header.append('unix')
-                for i in reply.items():
-                    header.append(i[0])
-                # total.append(header)
-                pandas.DataFrame([header]).to_csv(
-                    filename, mode='a', header=False, index=False)
-
-            dropped = list()
-            dropped.append(time.time())
-            for i in reply.values():
-                dropped.append(i[0])
-            print('+ Recieved response with', args)  # +':', dropped)
-            # open and delete everything back from the day before
-            pandas.DataFrame([dropped]).to_csv(
+        # only add header if file doesnt exist
+        if not os.path.isfile(filename):
+            header = list()
+            header.append('unix')
+            for i in reply.items():
+                header.append(i[0])
+            # total.append(header)
+            pandas.DataFrame([header]).to_csv(
                 filename, mode='a', header=False, index=False)
-            print('+ Saved response at time', self.utc_to_local(
-                datetime.utcfromtimestamp(dropped[0])), 'to file', filename)
-            # cleanup
-            self.cleanup(filename, 4096)
-            # dont usually need to return it
-            return pandas.DataFrame([dropped])
+
+        dropped = list()
+        dropped.append(time.time())
+        for i in reply.values():
+            dropped.append(i[0])
+        print('+ Recieved response with', args)  # +':', dropped)
+        # open and delete everything back from the day before
+        pandas.DataFrame([dropped]).to_csv(
+            filename, mode='a', header=False, index=False)
+        print('+ Saved response at time', self.utc_to_local(
+            datetime.utcfromtimestamp(dropped[0])), 'to file', filename)
+        # cleanup
+        self.cleanup(filename, 4096)
+        # dont usually need to return it
+        return pandas.DataFrame([dropped])
