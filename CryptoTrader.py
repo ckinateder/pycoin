@@ -20,7 +20,7 @@ class ThreadedTrader:
         self.pair = pair
         self.filename = self.getFilename(pair)
         self.retrain_every = retrain_every*60
-        self.trader = kraken.KrakenTrader()
+        self.k_trader = kraken.KrakenTrader()
         self.predictor = CryptoPredict.CryptoPredictor(lookback=1,
                                                        epochs=13,
                                                        units=256,
@@ -59,7 +59,7 @@ class ThreadedTrader:
                 print('* Retraining model ...\n')
                 self.predictor.retrainModel(self.current_df)
 
-            print('Last model trained at', self.trader.utc_to_local(
+            print('Last model trained at', self.k_trader.utc_to_local(
                 datetime.utcfromtimestamp(last_time_trained)))
             print('')
             time.sleep(10)
@@ -67,11 +67,11 @@ class ThreadedTrader:
     def saveLoop(self):
         while True:
             try:
-                self.trader.saveTickerPair(self.pair)
+                self.k_trader.saveTickerPair(self.pair)
             except:
                 print('api call failed...trying again in 5')
                 time.sleep(5)
-                self.trader.saveTickerPair(self.pair)
+                self.k_trader.saveTickerPair(self.pair)
 
             try:
                 self.current_df = self.predictor.createFrame()  # re update frame
