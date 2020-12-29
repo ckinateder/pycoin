@@ -338,7 +338,7 @@ class CryptoPredictor:
 
         model, new_data = self.trainModelForTest(
             df, self.midpoint, self.lookback, self.epochs, self.units, self.batch_size)
-        self.saveModel(model, (str(datetime.datetime.now()))+'-model')
+        self.saveModel(model)
 
         # predicting values, using past lookback from the train data
 
