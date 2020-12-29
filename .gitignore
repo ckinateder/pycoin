@@ -3,6 +3,8 @@ data/IVE_tickbidask.txt
 .ipynb_checkpoints
 keys/**
 data/**
-container/**
+container/
+archived/**
 .vscode
 __pycache__
+container/lib/python3.7/site-packages/tensorflow/python/_pywrap_tensorflow_internal.so
