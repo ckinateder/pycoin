@@ -28,7 +28,7 @@ class ThreadedTrader:
                                                        pair=pair,
                                                        cutpoint=2400,
                                                        important_headers=headers,
-                                                       verbose=0)
+                                                       verbose=1)
         self.current_df = self.predictor.createFrame()
         self.smallest_size = 1800
 
