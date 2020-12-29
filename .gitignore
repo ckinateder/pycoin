@@ -2,5 +2,7 @@ data/IVE_tickbidask.txt
 .DS_Store
 .ipynb_checkpoints
 keys/**
+data/**
+container/**
 .vscode
 __pycache__
