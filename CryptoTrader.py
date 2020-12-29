@@ -31,17 +31,27 @@ class ThreadedTrader:
                                                        verbose=1)
         self.current_df = self.predictor.createFrame()
         self.smallest_size = 1800
+        self.total_net = 0
 
     def getFilename(self, pair):
+        '''
+        Gets the appropiate filename given a pair.
+        '''
         return 'data/'+'-'.join(pair)+'_kraken.csv'
 
     def getFees(self):
+        '''
+        Gets the fees for each exchange (no longer needed).
+        '''
         # open file with json of fees and return dict of fees for the prices keys
         with open('data/fees.json', 'r') as jfees:
             self.fees = json.loads(jfees.read())
         return self.fees
 
     def checkMemory(self, heapy=False):
+        '''
+        Checks size of memory and prints it in MB.
+        '''
         process = psutil.Process(os.getpid())
         # in bytes
         print(
@@ -52,6 +62,9 @@ class ThreadedTrader:
 
     # write threading here using threads and futures
     def checkRetrainLoop(self):
+        '''
+        Checks to see whether or not the model needs to be retrained.
+        '''
         # RETRAIN
         last_time_trained = 0
         while True:
@@ -69,6 +82,10 @@ class ThreadedTrader:
             time.sleep(10)
 
     def saveLoop(self):
+        '''
+        Saves the latest price for the currency to the csv file, applies the model, and makes a decision.
+        Will later be modified to trade as well.
+        '''
         while True:
             try:
                 self.k_trader.saveTickerPair(self.pair)
@@ -107,9 +124,9 @@ class ThreadedTrader:
                         print(
                             '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
                                 self.usd, self.pair[1].upper(), self.crypto, self.pair[0].upper(), dollar_value))
-                    total_net = (((self.usd/self.initial_investment) +
-                                  ((self.crypto*current_price)/self.initial_investment))*100)-100
-                    print('+ Total net: {:.3f}%\n'.format(total_net))
+                    self.total_net = (((self.usd/self.initial_investment) +
+                                       ((self.crypto*current_price)/self.initial_investment))*100)-100
+                    print('+ Total net: {:.3f}%\n'.format(self.total_net))
                     # end transaction
                 else:
                     print(
@@ -127,6 +144,9 @@ class ThreadedTrader:
             time.sleep(10)
 
     def run(self):
+        '''
+        Main function.
+        '''
         try:
             print('* Initial training ...')
             # self.predictor.retrainModel(self.current_df) ## initialize with retrained model
