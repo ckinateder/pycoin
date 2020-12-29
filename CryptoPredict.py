@@ -20,10 +20,12 @@ WIDTH = 80
 WARN_BARS = '*'*WIDTH
 SPACE_BARS = '-'*WIDTH
 
+'''
 print(WARN_BARS, '\n* SUPRESSING KERAS WARNINGS - PROCEED W/ CAUTION')
 print(WARN_BARS)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
+'''
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 class CryptoPredictor:
 
@@ -336,7 +338,7 @@ class CryptoPredictor:
 
         model, new_data = self.trainModelForTest(
             df, self.midpoint, self.lookback, self.epochs, self.units, self.batch_size)
-        self.saveModel(model, (str(datetime.datetime.now()))+'-model')
+        self.saveModel(model)
 
         # predicting values, using past lookback from the train data
 
