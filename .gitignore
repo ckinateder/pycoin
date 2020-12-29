@@ -3,6 +3,6 @@ data/IVE_tickbidask.txt
 .ipynb_checkpoints
 keys/**
 data/**
-container/**
+**/container/
 .vscode
 __pycache__
