@@ -150,7 +150,7 @@ class ThreadedTrader:
 
                     #  save to log
                     row = [datetime.now(), decision, current_price, self.fiat,
-                           self.crypto, (dollar_value+self.fiat), self.total_net, len(self.current_df)]
+                           self.crypto, (self.crypto*current_price+self.fiat), self.total_net, len(self.current_df)]
                     self.logToCSV(row)
                     #  end
                 else:
