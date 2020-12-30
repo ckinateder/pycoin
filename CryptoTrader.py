@@ -45,6 +45,9 @@ class ThreadedTrader:
             writer.writerow(headers)
 
     def logToCSV(self, row):
+        '''
+        Logs diagnostics to file.
+        '''
         with open(self.log_path, 'a') as filename:
             writer = csv.writer(filename)
             writer.writerow(row)
