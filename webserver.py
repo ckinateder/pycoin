@@ -7,10 +7,5 @@ def hello():
     return "Hello World!"
 
 
-@app.route('/<name>')
-def hello_name(name):
-    return "Hello {}!".format(name)
-
-
 def main():
-    app.run()
+    app.run(host='0.0.0.0')
