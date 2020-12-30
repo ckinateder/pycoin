@@ -1,0 +1,5 @@
+# inputs: version
+# usage: $ ./build 1.0.1
+
+docker build -t pycoin .  # build docker image
+docker push ckinateder/pycoin:$1 

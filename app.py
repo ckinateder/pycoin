@@ -1,5 +1,6 @@
 from CryptoTrader import ThreadedTrader
 import sys
+import subprocess
 import webserver
 
 if __name__ == '__main__':
@@ -22,7 +23,10 @@ if __name__ == '__main__':
         invest = 200
         print('Using default values: {} and ${}'.format(pair, invest))
 
-    #webserver.main()
+    # run server in background
+    subprocess.Popen(
+        [sys.executable, '-c', 'import webserver; webserver.main()'])  # , stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print('Sent webserver to background \n')
     threader = ThreadedTrader(
         pair=pair, headers=headers, retrain_every=10, initial_investment=invest)
     threader.run()

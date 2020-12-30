@@ -15,12 +15,12 @@ Endpoint: `app.py`
 ### Installation and Build
 
 First install Docker and Python.
-`
+
 ```
 $ python3 -m venv container  # create virtual environment
 $ source container/bin/activate  # activate venv
 $ ./install  # install dependencies to venv
-$ docker build -t pycoin .  # build docker image
+$ ./build [version x.x.x]  # build and push to remote
 ```
 
 ### Sample Output
