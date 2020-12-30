@@ -46,9 +46,16 @@ class CryptoPredictor:
         self.verbose = verbose  # 0 is silent, 1 is progressbar
 
     def getFilename(self, pair):
+        '''
+        Creates the right filename from the given pair. 
+        All files associated with this currency will follow the same format.
+        '''
         return '-'.join(pair)+'_kraken'
 
     def loadCSV(self, filename):
+        '''
+        Loads the CSV file into a dataframe and returns it.
+        '''
         # read the file
         try:
             df = pd.read_csv(filename)
@@ -65,6 +72,9 @@ class CryptoPredictor:
         return df
 
     def createFrame(self):
+        '''
+        Creates the frame and handles where to split it. Returns a dataframe.
+        '''
         begin = time.time()
         df = self.loadCSV(self.csvset)
         if (len(df.index)-self.cutpoint) >= 0:
@@ -79,7 +89,11 @@ class CryptoPredictor:
         print('Dataset loaded into frame in {:.2f}s'.format(time.time()-begin))
         return df
 
-    def plotSave(self, series, xlabel, ylabel, title, legend, filename):  # series must be an array
+    # series must be an array of series
+    def plotSave(self, series, xlabel, ylabel, title, legend, filename):
+        '''
+        Plots a pandas series on a graph.
+        '''
         plt.clf()
         plt.figure(figsize=(16, 8))
         plt.xlabel(xlabel)
@@ -96,6 +110,9 @@ class CryptoPredictor:
         print('Saved plot '+title)
 
     def saveModel(self, model):
+        '''
+        Saves the given model and weights to file.
+        '''
         filename = self.getFilename(self.pair)
         # serialize model to JSON
         model_json = model.to_json()
@@ -106,6 +123,9 @@ class CryptoPredictor:
         print('Saved model to disk')
 
     def loadModel(self):
+        '''
+        Loads the given model and weights from file.
+        '''
         filename = self.getFilename(self.pair)
         # load json and create model
         json_file = open(self.models_path+filename+'-model.json', 'r')
@@ -119,6 +139,9 @@ class CryptoPredictor:
         return loaded_model
 
     def trainModel(self, df, lookback, epochs, units, batch_size):
+        '''
+        Trains the model and returns it.
+        '''
         # creating dataframe
         data = df.sort_index(ascending=True, axis=0)
         new_data = pd.DataFrame(index=range(0, len(df)),
@@ -158,6 +181,9 @@ class CryptoPredictor:
         return model, new_data
 
     def retrainModel(self, df):
+        '''
+        Handles retraining the model. 
+        '''
         #self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png')
         try:
             begin = time.time()
@@ -178,6 +204,9 @@ class CryptoPredictor:
             print((WARN_BARS)+'\n')
 
     def predictNextValue(self, inputs, model):  # withOUT validation*
+        '''
+        Predicts the next value and returns it.
+        '''
         # inputs should be current value and value before
         X_test = []
         for i in range(self.lookback, inputs.shape[0]):
@@ -189,18 +218,31 @@ class CryptoPredictor:
         return closing_price
 
     def conformInputs(self, inputs):
+        '''
+        Conforms inputs to the format for fitting.
+        '''
         inputs = inputs.reshape(-1, 1)
         inputs = self.scaler.transform(inputs)
         return inputs
 
     def getGradient(self, nextdf):
+        '''
+        Gets the gradient set and returns it.
+        '''
         return pd.Series(np.gradient(nextdf.values), nextdf.index, name='slope')
 
     def getSlope(self, pair):
+        '''
+        Gets the slope of two numbers and returns it.
+        '''
         constant = 10
         return (pair[1]-pair[0])/constant
 
     def calcError(self, actual_slope, pred_slope):
+        '''
+        Calculates the error given a set of the actual and predicted values.
+        NO LONGER USED.
+        '''
         tally = 0
         for i in range(0, actual_slope.size):
             #print(actual_slope[i],' ',pred_slope[i])
@@ -211,10 +253,14 @@ class CryptoPredictor:
         print('Derivative correct {:.1f}%'.format(perc_correct))
         return perc_correct
 
-    def decideAction(self, df, model):  # bring it all together here
-        # pair is derivative pair [n-1, n]
-        # compare current slope to last n slopes
-        # with that info decide to buy or sell - buy if bottoming, sell if peaking
+    def decideAction(self, df, model):
+        '''
+        Decides the action to take and returns it.
+        ---
+        pair is derivative pair [n-1, n]
+        compare current slope to last n slopes
+        with that info decide to buy or sell - 'buy' if bottoming, 'sell' if peaking, 'hold' if nothing
+        '''
         alpha = 0.001  # play with
 
         try:

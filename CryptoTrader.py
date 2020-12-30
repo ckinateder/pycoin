@@ -182,6 +182,8 @@ class ThreadedTrader:
             savingThread.start()
             print('* Creating retrainingThread ...')
             retrainingThread = threading.Thread(target=self.checkRetrainLoop)
+            print('* Waiting 10 seconds ...\n')
+            time.sleep(10)
             print('* Starting retrainingThread ...\n')
             retrainingThread.start()
             print('\nGood to go!\n')
