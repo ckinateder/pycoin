@@ -10,80 +10,72 @@ An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurren
 
 The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `1`, epochs between `10` and `15`, and units around `256`. I also found that the size of the rolling dataset works best between `1800` to `2400` datapoints. According to graph error, it looks as though the model needs to be retrained every half an hour to an hour at minimum. As far as structure goes – the main class will be `CryptoTrader`. It will incorporate `CrytoPredictor` and `KrakenTrader` and bring them together in one class for a fully functioned release.
 
-### Sample Output (w/ small dataset)
+### Sample Output
 ```
 $ python3 CryptoTrader.py
 
-********************************************************************************
-* WARNING: DATASET LENGTH < 1800 (actual = 29)
-* MODEL PERFORMANCE WILL BE SUBOPTIMAL
-********************************************************************************
-
-Dataset loaded into frame in 0.00s
-Loaded model from disk
-Last model trained at 2020-12-27 11:53:02.864641-05:00
-
 --------------------------------------------------------------------------------
-@ 12/27/2020 11:53:27
+@ 12/29/2020 18:53:55
 --------------------------------------------------------------------------------
-n-1: $26709.60 (actual)
-n: $26701.80 (actual)
+n-1: $129.3600 (actual)
+n: $129.2700 (actual)
 
-n-1: $26722.85 (predicted)
-n: $26699.83 (predicted)
-n+1: $26719.16 (predicted)
+n-1: $129.1327 (predicted)
+n: $129.0323 (predicted)
+n+1: $129.1236 (predicted)
 
-actual (previous) d/dx: -0.78
+actual (previous) d/dx: -0.0090
 
-predicted (previous) d/dx: -2.30
-predicted (next) d/dx: 1.93
+predicted (previous) d/dx: -0.0100
+predicted (next) d/dx: 0.0091
 
 predicted action: buy
 -------------------------------------------------------------------------------- 
 
 + Balance:
   + 0.00 USD
-  + 0.01872533 BTC
+  + 4.73753803 LTC
    (bought)
++ Total net: 2.070%
 
-* Using 399.57 MB of memory
+* Using 460.36 MB of memory
+Saved model to disk
+Model trained and saved in 105.28s
+Last model trained at 2020-12-29 18:52:16.116808-05:00
 
-Last model trained at 2020-12-27 11:53:02.864641-05:00
-+ Recieved response with ['Ticker', 'pair=xxbtzusd'] - [1609088018.161651, '26718.40000', '26706.40000', '26706.50000', '10654.96793825', '27264.32520', 59483, '26245.90000', '28353.20000', '2']
-+ Saved response at time 2020-12-27 11:53:38.161651-05:00 to file data/xbt-usd_kraken.csv
++ Recieved response with ['Ticker', 'pair=xltczusd']
++ Saved response at time 2020-12-29 18:54:06.126143-05:00 to file data/ltc-usd_kraken.csv
 
-********************************************************************************
-* WARNING: DATASET LENGTH < 1800 (actual = 30)
-* MODEL PERFORMANCE WILL BE SUBOPTIMAL
-********************************************************************************
-
-Dataset loaded into frame in 0.00s
+Dataset loaded into frame in 0.01s
 Loaded model from disk
 
 --------------------------------------------------------------------------------
-@ 12/27/2020 11:53:39
+@ 12/29/2020 18:54:07
 --------------------------------------------------------------------------------
-n-1: $26701.80 (actual)
-n: $26718.40 (actual)
+n-1: $129.2700 (actual)
+n: $129.2700 (actual)
 
-n-1: $26699.83 (predicted)
-n: $26719.16 (predicted)
-n+1: $26713.58 (predicted)
+n-1: $129.3077 (predicted)
+n: $129.4065 (predicted)
+n+1: $129.3176 (predicted)
 
-actual (previous) d/dx: 1.66
+actual (previous) d/dx: 0.0000
 
-predicted (previous) d/dx: 1.93
-predicted (next) d/dx: -0.56
+predicted (previous) d/dx: 0.0099
+predicted (next) d/dx: -0.0089
 
-predicted action: sell
+predicted action: hold
 -------------------------------------------------------------------------------- 
 
 + Balance:
-  + 500.31 USD
-  + 0.00000000 BTC
-   (sold)
+  + 0.00 USD
+  + 4.73753803 LTC (valued at 612.42 USD)
+   (holding)
++ Total net: 2.070%
 
-* Using 407.32 MB of memory
+* Using 464.12 MB of memory
+
+Last model trained at 2020-12-29 18:52:16.116808-05:00
 ```
 
 ### Charts
