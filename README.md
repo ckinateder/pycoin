@@ -8,11 +8,24 @@ An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurren
 
 ### Trading Logic
 
-The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `1`, epochs between `10` and `15`, and units around `256`. I also found that the size of the rolling dataset works best between `1800` to `2400` datapoints. According to graph error, it looks as though the model needs to be retrained every half an hour to an hour at minimum. As far as structure goes – the main class will be `CryptoTrader`. It will incorporate `CrytoPredictor` and `KrakenTrader` and bring them together in one class for a fully functioned release.
+The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `1`, epochs between `10` and `15`, and units around `256`. I also found that the size of the rolling dataset works best between `1800` to `2400` datapoints. According to graph error, it looks as though the model needs to be retrained every half an hour to an hour at minimum. As far as structure goes – the main class is `CryptoTrader`. It incorporates `CrytoPredictor` and `KrakenTrader` and brings them together in one class. This is then referenced by `app.py` and put together with the web server for a fully functioned release. Currently, the web server is not fuctional, but will be in the future.
+
+Endpoint: `app.py`
+
+### Installation and Build
+
+First install Docker and Python.
+`
+```
+$ python3 -m venv container  # create virtual environment
+$ source container/bin/activate  # activate venv
+$ ./install  # install dependencies to venv
+$ docker build -t pycoin .  # build docker image
+```
 
 ### Sample Output
 ```
-$ python3 CryptoTrader.py
+$ python3 app.py ltc usd 600
 
 --------------------------------------------------------------------------------
 @ 12/29/2020 18:53:55

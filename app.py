@@ -22,7 +22,7 @@ if __name__ == '__main__':
         invest = 200
         print('Using default values: {} and ${}'.format(pair, invest))
 
-    webserver.main()
+    #webserver.main()
     threader = ThreadedTrader(
         pair=pair, headers=headers, retrain_every=10, initial_investment=invest)
     threader.run()
