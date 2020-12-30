@@ -38,16 +38,25 @@ class ThreadedTrader:
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
 
         # reset file
+        headers = ['unix', 'action', 'price', 'balance ({})'.format(
+            self.pair[1]), 'balance ({})'.format(self.pair[0]), 'valuation ({})'.format(self.pair[1]), 'total net (%)', 'dataset size']
+
+        with open('logs/current_log.csv', 'w+') as filename:
+            writer = csv.writer(filename)
+            writer.writerow(headers)
+
         with open(self.log_path, 'w+') as filename:
             writer = csv.writer(filename)
-            headers = ['unix', 'action', 'price', 'balance ({})'.format(
-                self.pair[1]), 'balance ({})'.format(self.pair[0]), 'valuation ({})'.format(self.pair[1]), 'total net (%)', 'dataset size']
             writer.writerow(headers)
 
     def logToCSV(self, row):
         '''
         Logs diagnostics to file.
         '''
+        with open('logs/current_log.csv', 'a') as filename:
+            writer = csv.writer(filename)
+            writer.writerow(row)
+
         with open(self.log_path, 'a') as filename:
             writer = csv.writer(filename)
             writer.writerow(row)

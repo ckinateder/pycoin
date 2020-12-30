@@ -45,6 +45,7 @@ scikit-learn==0.24.0
 scipy==1.5.4
 six==1.15.0
 sklearn==0.0
+tablib==3.0.0
 tensorboard==2.4.0
 tensorboard-plugin-wit==1.7.0
 tensorflow==2.4.0
