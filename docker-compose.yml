@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  picoin:
+    image: picoin
+    build:
+      context: .
+      dockerfile: ./Dockerfile
