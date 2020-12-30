@@ -123,7 +123,7 @@ class ThreadedTrader:
                         self.current_df, current_model)
 
                     # buy or sell here
-                    current_price = self.current_df.iloc[-1][headers['price']]
+                    current_price = self.current_df.iloc[-1][self.headers['price']]
                     crypto_value = self.fiat/current_price  # in crypto
                     dollar_value = self.crypto*current_price  # in usd
 
