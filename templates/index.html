@@ -7,12 +7,31 @@
 </head>
 
 <body>
-    <div id="place_for_table">
-        {{ table|safe }}
-    </div>
-
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
-    <script>
-
+    <script type="text/javascript">
+        setInterval("my_function();", 5000);
+        function my_function() {
+            $('#refresh').load(location.href + ' #place_for_table');
+        }
     </script>
+    <div id="refresh">
+        <div id="place_for_table">
+            {{ table|safe }}
+        </div>
+    </div>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        td,
+        th {
+            border: 1px solid #999;
+            padding: 0.5rem;
+            text-align: left;
+        }
+    </style>
+</body>
+
+</html>
