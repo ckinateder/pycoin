@@ -163,7 +163,7 @@ class ThreadedTrader:
 
                     #  save to log
                     row = [datetime.now().replace(microsecond=0), decision, current_price, round(self.fiat, 2),
-                           round(self.crypto, 8), round(self.crypto*current_price+self.fiat), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
+                           round(self.crypto, 8), round(self.crypto*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
                     self.logToCSV(row)
                     #  end
                 else:
