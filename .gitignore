@@ -9,3 +9,4 @@ container/
 archived/**
 .vscode
 __pycache__
+logs/current_log.csv
