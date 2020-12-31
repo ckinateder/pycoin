@@ -38,8 +38,8 @@ class ThreadedTrader:
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
 
         # reset file
-        headers = ['unix', 'action', 'price', 'balance ({})'.format(
-            self.pair[1]), 'balance ({})'.format(self.pair[0]), 'valuation ({})'.format(self.pair[1]), 'total net (%)', 'dataset size']
+        headers = ['unix', 'action', 'price ({})'.format(self.pair[0]), 'balance ({})'.format(
+            self.pair[1]), 'balance ({})'.format(self.pair[0]), 'valuation ({})'.format(self.pair[1]), 'total net (%)', 'uptime', 'dataset size']
 
         with open('logs/current_log.csv', 'w+') as filename:
             writer = csv.writer(filename)
@@ -161,8 +161,8 @@ class ThreadedTrader:
                     # end transaction
 
                     #  save to log
-                    row = [datetime.now(), decision, current_price, self.fiat,
-                           self.crypto, (self.crypto*current_price+self.fiat), self.total_net, len(self.current_df)]
+                    row = [datetime.now().replace(microsecond=0), decision, current_price, self.fiat,
+                           self.crypto, (self.crypto*current_price+self.fiat), self.total_net, str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
                     self.logToCSV(row)
                     #  end
                 else:

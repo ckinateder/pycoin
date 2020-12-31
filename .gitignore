@@ -2,9 +2,10 @@ data/IVE_tickbidask.txt
 .DS_Store
 .ipynb_checkpoints
 keys/**
+!keys/.gitkeep 
 data/**
+!data/.gitkeep
 container/
 archived/**
 .vscode
 __pycache__
-container/
