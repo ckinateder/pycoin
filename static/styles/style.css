@@ -18,11 +18,11 @@ th {
     margin: 10px;
     font-family: monospace;
     border: 1px solid grey;
-    padding: 2px;
+    padding: 3px;
     display: inline-block;
     position: fixed;
-    bottom: 0;
-    right: 0;
+    bottom: 5;
+    right: 5;
     background-color: white;
 }
 
