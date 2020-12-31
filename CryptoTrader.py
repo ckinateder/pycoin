@@ -37,6 +37,7 @@ class ThreadedTrader:
         self.start_time = datetime.now()
         self.log_path = 'logs/' + \
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
+        self.conservative = True
 
         # reset file
         headers = ['unix', 'action', 'price ({})'.format(self.pair[0]), 'balance ({})'.format(
@@ -143,12 +144,19 @@ class ThreadedTrader:
                         print(
                             '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                 self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
-                    elif decision == 'sell' and self.crypto >= crypto_value and dollar_value >= self.initial_investment:  # so no loss from selling
-                        self.fiat = self.fiat + dollar_value
-                        self.crypto = self.crypto - self.fiat/current_price
-                        print(
-                            '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                                self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                    elif decision == 'sell' and self.crypto >= crypto_value:
+                        if self.conservative and dollar_value >= self.initial_investment:  # so no loss from selling
+                            self.fiat = self.fiat + dollar_value
+                            self.crypto = self.crypto - self.fiat/current_price
+                            print(
+                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                                    self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                        else:  # just do it
+                            self.fiat = self.fiat + dollar_value
+                            self.crypto = self.crypto - self.fiat/current_price
+                            print(
+                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                                    self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                     else:
                         print(
                             '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
