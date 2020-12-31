@@ -33,6 +33,7 @@ class ThreadedTrader:
         self.current_df = self.predictor.createFrame()
         self.smallest_size = 1800
         self.total_net = 0
+        self.time_delay = 8
         self.start_time = datetime.now()
         self.log_path = 'logs/' + \
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
@@ -162,7 +163,7 @@ class ThreadedTrader:
 
                     #  save to log
                     row = [datetime.now().replace(microsecond=0), decision, current_price, round(self.fiat, 2),
-                           round(self.crypto, 8), (self.crypto*current_price+self.fiat), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
+                           round(self.crypto, 8), round(self.crypto*current_price+self.fiat), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
                     self.logToCSV(row)
                     #  end
                 else:
@@ -178,7 +179,7 @@ class ThreadedTrader:
                     '* Model not found - {} ...'.format(e))
 
             self.checkMemory()
-            time.sleep(8)
+            time.sleep(self.time_delay)
 
     def run(self):
         '''

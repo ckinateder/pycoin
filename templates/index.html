@@ -4,25 +4,38 @@
 
 <head>
     <title>pycoin log</title>
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/style.css') }}">
 </head>
 
 <body>
+    <div id="info">
+        {{ info }}
+    </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
     <script type="text/javascript">
         setInterval("my_function();", 5000);
         function my_function() {
-            $('#refresh').load(location.href + ' #place_for_table');
+            $('#refresh1').load(location.href + ' #latest_div');
+            $('#refresh2').load(location.href + ' #log_div');
         }
     </script>
-    <div id="refresh">
-        <div id="place_for_table">
-            {{ table|safe }}
+    <div id="dash">
+        <h1>Current Stats</h1>
+        <div id="refresh1">
+            <div id="latest_div">
+                {{ latest|safe }}
+            </div>
         </div>
     </div>
-    <style>
-    </style>
+    <div id="log_container">
+        <h1>Log</h1>
+        <div id="refresh2">
+            <div id="log_div">
+                {{ log|safe }}
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
