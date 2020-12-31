@@ -143,7 +143,7 @@ class ThreadedTrader:
                         print(
                             '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                 self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
-                    elif decision == 'sell' and self.crypto >= crypto_value:
+                    elif decision == 'sell' and self.crypto >= crypto_value and dollar_value >= self.initial_investment:  # so no loss from selling
                         self.fiat = self.fiat + dollar_value
                         self.crypto = self.crypto - self.fiat/current_price
                         print(
