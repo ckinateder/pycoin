@@ -42,6 +42,7 @@ class ThreadedTrader:
         self.log_path = 'logs/' + \
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
         self.conservative = True
+        self.predicting = True  # for pausing
 
         # reset file
         headers = ['unix', 'action', 'price ({})'.format(self.pair[0]), 'balance ({})'.format(
@@ -101,17 +102,20 @@ class ThreadedTrader:
         # RETRAIN
         last_time_trained = 0
         while True:
-            if ((time.time() - last_time_trained) > self.retrain_every or last_time_trained == 0) and len(self.current_df) >= self.smallest_size:
-                last_time_trained = time.time()
-                print('* Retraining model ...\n')
-                self.predictor.retrainModel(self.current_df)
+            if self.predicting:
+                if ((time.time() - last_time_trained) > self.retrain_every or last_time_trained == 0) and len(self.current_df) >= self.smallest_size:
+                    last_time_trained = time.time()
+                    print('* Retraining model ...\n')
+                    self.predictor.retrainModel(self.current_df)
 
-            if last_time_trained != 0:
-                print('Last model trained at', self.k_trader.utc_to_local(
-                    datetime.utcfromtimestamp(last_time_trained)))
+                if last_time_trained != 0:
+                    print('Last model trained at', self.k_trader.utc_to_local(
+                        datetime.utcfromtimestamp(last_time_trained)))
+                else:
+                    print('Model not trained yet ...')
+                print('')
             else:
-                print('Model not trained yet ...')
-            print('')
+                print('Not predicting ...')
             time.sleep(10)
 
     def saveLoop(self):

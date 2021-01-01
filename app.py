@@ -55,7 +55,7 @@ def table():
     else:
         top_row = 'No data yet'
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', info=getInfo(), build='0.8.7', latest=top_row, log=log)
+    return render_template('index.html', info=getInfo(), build='0.8.8', latest=top_row, log=log)
 
 
 def runServer():
