@@ -14,16 +14,26 @@ __email__ = 'calvinkinateder@gmail.com'
 
 app = Flask(__name__)
 
+headers = {
+    'timestamp': 'unix',
+    'price': 'a'  # the column used for price
+}
+
+pair = ['eth', 'usd']
+invest = 200
+threader = ThreadedTrader(
+    pair=pair, headers=headers, retrain_every=10, initial_investment=invest)
+
 
 def getInfo():
     l = list(platform.uname())
     return 'System Info: '+' - '.join(l)
 
 
-@app.route('/quit_btn')
-def quit_btn():
-    print('Does nothing rn')
-    return ('Done (/quit_btn)')
+@app.route('/restart_btn')
+def restart_btn():
+    threader.restart()
+    return ('Done (/restart_btn)')
 
 
 @app.route('/')
@@ -44,16 +54,6 @@ def table():
 def runServer():
     app.run(host='0.0.0.0', threaded=True)
 
-
-headers = {
-    'timestamp': 'unix',
-    'price': 'a'  # the column used for price
-}
-
-pair = ['eth', 'usd']
-invest = 200
-threader = ThreadedTrader(
-    pair=pair, headers=headers, retrain_every=10, initial_investment=invest)
 
 if __name__ == '__main__':
     '''

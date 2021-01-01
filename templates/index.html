@@ -16,9 +16,9 @@
             $('#refresh2').load(location.href + ' #log_div');
         }
         $(function () {
-            $('a#quit_btn').on('click', function (e) {
+            $('a#restart_btn').on('click', function (e) {
                 e.preventDefault()
-                $.getJSON('/quit_btn',
+                $.getJSON('/restart_btn',
                     function (data) {
                         //do nothing
                     });
@@ -28,7 +28,7 @@
     </script>
     <div id=console>
         <form>
-            <a href=# id=quit_btn><button class='btn'>Test</button></a>
+            <a href=# id=restart_btn><button class='btn'>Restart</button></a>
         </form>
     </div>
     <div id="dash">
@@ -142,9 +142,7 @@
 
         .btn:active {
             background-color: #16494d;
-
             border: 2px solid white;
-            /* Green */
             color: white;
         }
     </style>

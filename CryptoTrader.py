@@ -180,17 +180,19 @@ class ThreadedTrader:
                 else:
                     print(
                         '* Not predicting, dataset not big enough ({} < {})'.format(len(self.current_df), self.smallest_size))
-            except sklearn.exceptions.NotFittedError:
-                print('* Model not fit yet - waiting til next cycle')
-
-            except UnboundLocalError:
-                print('* Model not fit yet - waiting til next cycle')
+            except sklearn.exceptions.NotFittedError as e:
+                print('* Model not fit yet - waiting til next cycle ({})'.format(e))
+            except UnboundLocalError as e:
+                print('* Model not fit yet - waiting til next cycle ({})'.format(e))
             except FileNotFoundError as e:
                 print(
                     '* Model not found - {} ...'.format(e))
 
             self.checkMemory()
             time.sleep(self.time_delay)
+
+    def restart(self):
+        pass
 
     def run(self):
         '''
@@ -201,16 +203,17 @@ class ThreadedTrader:
             # self.predictor.retrainModel(self.current_df) ## initialize with retrained model
 
             print('* Creating savingThread ...')
-            savingThread = threading.Thread(target=self.saveLoop, name='saver')
+            self.savingThread = threading.Thread(
+                target=self.saveLoop, name='saver')
             print('* Starting savingThread ...')
-            savingThread.start()
+            self.savingThread.start()
             print('* Creating retrainingThread ...')
-            retrainingThread = threading.Thread(
+            self.retrainingThread = threading.Thread(
                 target=self.checkRetrainLoop, name='retrainer')
             print('* Waiting 10 seconds ...\n')
             time.sleep(10)
             print('* Starting retrainingThread ...\n')
-            retrainingThread.start()
+            self.retrainingThread.start()
             print('\nGood to go!\n')
 
         except (KeyboardInterrupt, SystemExit):
