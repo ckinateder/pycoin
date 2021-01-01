@@ -24,7 +24,8 @@ def table():
         top_row = vals
     else:
         top_row = 'No data yet'
-    return render_template('index.html', info=getInfo(), latest=top_row, log=dataset.to_html(table_id='log', index=False))
+    log = dataset.to_html(table_id='log', index=False)
+    return render_template('index.html', info=getInfo(), build='0.8.5', latest=top_row, log=log)
 
 
 def main():
