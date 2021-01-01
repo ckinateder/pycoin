@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from datetime import datetime, timezone
 import CryptoPredict
 import time
@@ -10,6 +11,9 @@ import sklearn
 import sys
 import json
 from guppy import hpy
+
+__author__ = 'Calvin Kinateder'
+__email__ = 'calvinkinateder@gmail.com'
 
 
 class ThreadedTrader:
@@ -90,7 +94,6 @@ class ThreadedTrader:
             h = hpy()
             print(h.heap())
 
-    # write threading here using threads and futures
     def checkRetrainLoop(self):
         '''
         Checks to see whether or not the model needs to be retrained.
@@ -198,11 +201,12 @@ class ThreadedTrader:
             # self.predictor.retrainModel(self.current_df) ## initialize with retrained model
 
             print('* Creating savingThread ...')
-            savingThread = threading.Thread(target=self.saveLoop)
+            savingThread = threading.Thread(target=self.saveLoop, name='saver')
             print('* Starting savingThread ...')
             savingThread.start()
             print('* Creating retrainingThread ...')
-            retrainingThread = threading.Thread(target=self.checkRetrainLoop)
+            retrainingThread = threading.Thread(
+                target=self.checkRetrainLoop, name='retrainer')
             print('* Waiting 10 seconds ...\n')
             time.sleep(10)
             print('* Starting retrainingThread ...\n')

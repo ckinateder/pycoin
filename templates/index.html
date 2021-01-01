@@ -15,7 +15,22 @@
             $('#refresh1').load(location.href + ' #latest_div');
             $('#refresh2').load(location.href + ' #log_div');
         }
+        $(function () {
+            $('a#quit_btn').on('click', function (e) {
+                e.preventDefault()
+                $.getJSON('/quit_btn',
+                    function (data) {
+                        //do nothing
+                    });
+                return false;
+            });
+        });
     </script>
+    <div id=console>
+        <form>
+            <a href=# id=quit_btn><button class='btn'>Test</button></a>
+        </form>
+    </div>
     <div id="dash">
         <h1>Current Stats</h1>
         <div id="refresh1">
@@ -54,6 +69,7 @@
             color: black;
             text-align: center;
             font-family: monospace;
+            margin-left: 80px;
         }
 
         .build {
@@ -88,6 +104,14 @@
             width: auto;
         }
 
+        #console {
+            background-color: white;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            margin: 10px;
+        }
+
         #log_container {
             margin-top: 20px;
             padding: 10px;
@@ -96,6 +120,32 @@
 
         h1 {
             margin-top: 0;
+        }
+
+        .btn {
+            transition-duration: 0.4s;
+            background-color: white;
+            border: 2px solid black;
+            color: black;
+            border-radius: 2px;
+            padding: 5px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .btn:hover {
+            background-color: #16494d;
+            color: white;
+        }
+
+        .btn:active {
+            background-color: #16494d;
+
+            border: 2px solid white;
+            /* Green */
+            color: white;
         }
     </style>
 </body>

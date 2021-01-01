@@ -15,6 +15,9 @@ import sys
 import os
 # setting figure size
 
+__author__ = 'Calvin Kinateder'
+__email__ = 'calvinkinateder@gmail.com'
+
 WIDTH = 80
 
 WARN_BARS = '*'*WIDTH
