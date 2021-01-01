@@ -14,7 +14,7 @@ Endpoint: `app.py`
 
 ### Installation and Build
 
-First install Docker and Python.
+First install Docker, Git, and Python.
 
 ```
 $ python3 -m venv container  # create virtual environment
@@ -22,6 +22,7 @@ $ source container/bin/activate  # activate venv
 $ ./install  # install dependencies to venv
 -- make changes --
 $ ./build [x.x.x]  # build and push to remote
+$ docker run  -p 5000:5000 ckinateder/pycoin:[x.x.x]  # run container
 ```
 
 ### Sample Console
