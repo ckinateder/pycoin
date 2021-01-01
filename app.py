@@ -32,8 +32,15 @@ def getInfo():
 
 @app.route('/restart_btn')
 def restart_btn():
-    threader.restart()
+    # dont know what to put here yet
     return ('Done (/restart_btn)')
+
+
+@app.route('/quit_btn')
+def quit_btn():
+    os._exit(0)
+    # dont know what to put here yet
+    return ('Done (/quit_btn)')
 
 
 @app.route('/')
@@ -48,7 +55,7 @@ def table():
     else:
         top_row = 'No data yet'
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', info=getInfo(), build='0.8.5', latest=top_row, log=log)
+    return render_template('index.html', info=getInfo(), build='0.8.7', latest=top_row, log=log)
 
 
 def runServer():

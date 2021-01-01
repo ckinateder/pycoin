@@ -191,9 +191,6 @@ class ThreadedTrader:
             self.checkMemory()
             time.sleep(self.time_delay)
 
-    def restart(self):
-        pass
-
     def run(self):
         '''
         Main function.
@@ -205,11 +202,13 @@ class ThreadedTrader:
             print('* Creating savingThread ...')
             self.savingThread = threading.Thread(
                 target=self.saveLoop, name='saver')
+            self.savingThread.setDaemon(True)
             print('* Starting savingThread ...')
             self.savingThread.start()
             print('* Creating retrainingThread ...')
             self.retrainingThread = threading.Thread(
                 target=self.checkRetrainLoop, name='retrainer')
+            self.retrainingThread.setDaemon(True)
             print('* Waiting 10 seconds ...\n')
             time.sleep(10)
             print('* Starting retrainingThread ...\n')

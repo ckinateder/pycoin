@@ -25,10 +25,23 @@
                 return false;
             });
         });
+        $(function () {
+            $('a#quit_btn').on('click', function (e) {
+                e.preventDefault()
+                $.getJSON('/quit_btn',
+                    function (data) {
+                        //do nothing
+                    });
+                return false;
+            });
+        });
     </script>
     <div id=console>
         <form>
             <a href=# id=restart_btn><button class='btn'>Restart</button></a>
+        </form>
+        <form>
+            <a href=# id=quit_btn><button class='btn'>Quit</button></a>
         </form>
     </div>
     <div id="dash">
@@ -133,6 +146,7 @@
             text-decoration: none;
             display: inline-block;
             font-family: Arial, Helvetica, sans-serif;
+            width: 70px;
         }
 
         .btn:hover {
