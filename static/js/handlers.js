@@ -3,6 +3,7 @@ function my_function() {
     $('#refresh1').load(location.href + ' #latest_div');
     $('#refresh2').load(location.href + ' #log_div');
     $('#data').load(location.href + ' #head-of-data');
+    $('#info').load(location.href + ' #info');
 }
 $(function () {
     $('a#restart_btn').on('click', function (e) {
@@ -11,6 +12,7 @@ $(function () {
             function (data) {
                 //do nothing
             });
+        $('#info').load(location.href + ' #info');
         return false;
     });
 });

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 from flask import Flask, request, render_template
+from datetime import datetime
 from CryptoTrader import ThreadedTrader
 import tablib
 import threading
+import time
 import os
 import platform
 import time
@@ -14,6 +16,8 @@ __email__ = 'calvinkinateder@gmail.com'
 
 app = Flask(__name__)
 
+# headers for csv data
+
 headers = {
     'timestamp': 'unix',
     'price': 'a'  # the column used for price
@@ -21,30 +25,49 @@ headers = {
 
 pair = ['eth', 'usd']
 invest = 200
+
+# create threader
 threader = ThreadedTrader(
     pair=pair, headers=headers, retrain_every=10, initial_investment=invest)
 
 
 def getFooter():
+    '''
+    Get system platform info for footer.
+    '''
     l = list(platform.uname())
     return 'System Info: '+' - '.join(l)
 
 
 def getInfo():
-    #print('****', threader.predicting)
-    return 'Pair: [{}]<br>Investing ${:.2f}<br>Predicting:  {}'.format(' - '.join(pair).upper(), invest, threader.predicting)
+    '''
+    Get status for info div. (html safe)
+    '''
+    return 'Pair: [{}]<br>\
+        Investing ${:.2f}<br>\
+            Predicting: {}<br>\
+            Last time trained: <br>\
+            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
 
 # routes
 
 
 @app.route('/restart_btn')
 def restart_btn():
-    # dont know what to put here yet
+    '''
+    Force retrain the model.
+    '''
+    print('\n* FORCE RETRAIN\n')
+    threader.last_time_trained = time.time()
+    threader.predictor.retrainModel(threader.current_df)
     return ('Done (/restart_btn)')
 
 
 @app.route('/toggle_predicting_btn')
 def toggle_predicting_btn():
+    '''
+    Toggle predicting on and off.
+    '''
     if threader.predicting:
         threader.predicting = False
     elif threader.predicting == False:
@@ -54,14 +77,18 @@ def toggle_predicting_btn():
 
 @app.route('/quit_btn')
 def quit_btn():
+    '''
+    Emergency stop button.
+    '''
     os._exit(0)
-    # dont know what to put here yet
     return ('Done (/quit_btn)')
 
 
 @app.route('/')
 def table():
-    # time.sleep(10)
+    '''
+    Run on load and reload table.
+    '''
     # get log
     dataset = pd.read_csv('logs/current_log.csv')
     if len(dataset.index) >= 1:

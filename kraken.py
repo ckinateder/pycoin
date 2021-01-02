@@ -59,6 +59,12 @@ class KrakenTrader:
 
         self.api_domain = 'https://api.kraken.com'
 
+    def utc_to_local(self, utc_dt):
+        '''
+        Converts UTC time to local timezone.
+        '''
+        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+
     def main(self, args):
         '''
         Responsible for handling the calls to the API at \'https://api.kraken.com\'.
@@ -146,12 +152,6 @@ class KrakenTrader:
             parsed = whole_file.drop(list(range(0, end)))
             parsed.to_csv(filename, index=False)
             # drop early rows and then rewrite NOT APPEND
-
-    def utc_to_local(self, utc_dt):
-        '''
-        Converts UTC time to local timezone.
-        '''
-        return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
     def saveTickerPair(self, pair, override=[]):  # just save latest:
         '''

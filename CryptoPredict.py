@@ -44,7 +44,7 @@ class CryptoPredictor:
         self.epochs = epochs
         self.units = units  # 65 is good
         self.batch_size = batch_size  # 2 is good
-        #self.rcParams['figure.figsize'] = 20,10
+        # self.rcParams['figure.figsize'] = 20,10
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.verbose = verbose  # 0 is silent, 1 is progressbar
 
@@ -187,7 +187,7 @@ class CryptoPredictor:
         '''
         Handles retraining the model. 
         '''
-        #self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png')
+        # self.plotSave([df[self.important_headers['price']]], 'Date', 'Bitcoin Price (USD)', 'Price History', ['Prices'], 'hourly_prices.png')
         try:
             begin = time.time()
 
@@ -248,7 +248,7 @@ class CryptoPredictor:
         '''
         tally = 0
         for i in range(0, actual_slope.size):
-            #print(actual_slope[i],' ',pred_slope[i])
+            # print(actual_slope[i],' ',pred_slope[i])
             if (actual_slope[i] < 0 and pred_slope[i] > 0) or (actual_slope[i] > 0 and pred_slope[i] < 0):
                 tally += 1
         perc_correct = (1-(tally/actual_slope.size))*100
