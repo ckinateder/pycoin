@@ -14,6 +14,7 @@
         function my_function() {
             $('#refresh1').load(location.href + ' #latest_div');
             $('#refresh2').load(location.href + ' #log_div');
+            $('#data').load(location.href + ' #head-of-data');
         }
         $(function () {
             $('a#restart_btn').on('click', function (e) {
@@ -61,26 +62,30 @@
             <a href=# id=quit_btn><button class='btn'>Quit</button></a>
         </form>
     </div>
-    <div id="tables-and-log">
-        <div id="dash">
-            <h1>Current Stats</h1>
-            <div id="refresh1">
-                <div id="latest_div">
-                    {{ latest|safe }}
+    <div id="panels-both">
+        <div id="tables-and-log">
+            <div id="dash">
+                <h1>Current Stats</h1>
+                <div id="refresh1">
+                    <div id="latest_div">
+                        {{ latest|safe }}
+                    </div>
+                </div>
+            </div>
+            <div id="log_container">
+                <h1>Log</h1>
+                <div id="refresh2">
+                    <div id="log_div">
+                        {{ log|safe }}
+                    </div>
                 </div>
             </div>
         </div>
-        <div id="log_container">
-            <h1>Log</h1>
-            <div id="refresh2">
-                <div id="log_div">
-                    {{ log|safe }}
-                </div>
+        <div id="data">
+            <div id="head-of-data">
+                {{ head|safe }}
             </div>
         </div>
-    </div>
-    <div id="data">
-
     </div>
     <div id="footer">
         {{ footer }}
@@ -98,12 +103,21 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
+        #panels-both {
+            width: 100%;
+            margin: auto;
+            padding-top: 2vh;
+        }
+
         #tables-and-log {
-            width: 50%;
+            float: left;
+            width: 48%;
         }
 
         #data {
-            display: none;
+
+            float: right;
+            width: 48%;
         }
 
         #footer {
@@ -164,7 +178,7 @@
         #dash {
             display: inline-block;
             border: 2px solid black;
-            padding: 10px;
+            padding: 20px;
             width: auto;
         }
 
@@ -178,7 +192,7 @@
 
         #log_container {
             margin-top: 20px;
-            padding: 10px;
+            padding: 20px;
             width: auto;
         }
 

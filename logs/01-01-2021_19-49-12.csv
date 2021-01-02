@@ -1,0 +1,4 @@
+unix,action,price (eth),balance (usd),balance (eth),valuation (usd),total net (%),uptime,dataset size
+2021-01-01 19:49:32,hold,722.37,200,0,200.0,0.0,0:00:19,2400
+2021-01-01 19:49:43,hold,722.37,200,0,200.0,0.0,0:00:30,2400
+2021-01-01 19:49:53,hold,722.26,200,0,200.0,0.0,0:00:40,2400

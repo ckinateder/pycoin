@@ -62,6 +62,7 @@ def quit_btn():
 @app.route('/')
 def table():
     # time.sleep(10)
+    # get log
     dataset = pd.read_csv('logs/current_log.csv')
     if len(dataset.index) >= 1:
         vals = dataset.iloc[-1].to_frame().T.to_html(table_id='latest',
@@ -69,9 +70,17 @@ def table():
         # print(vals)
         top_row = vals
     else:
-        top_row = 'No data yet'
+        top_row = dataset.to_html(table_id='latest', index=False)
+    # get pure csv
+    head = pd.read_csv(threader.getFilename(threader.pair))
+    if len(head.values) >= 30:
+        head_html = head.iloc[-30:].iloc[::-1].to_html(table_id='csv')
+    else:
+        head_html = head.iloc[-(len(head_html)) -
+                              1:].iloc[::-1].to_html(table_id='csv')
+
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', footer=getFooter(), build='0.8.9', latest=top_row, log=log, info=getInfo())
+    return render_template('index.html', footer=getFooter(), build='0.8.9', latest=top_row, log=log, info=getInfo(), head=head_html)
 
 
 def runServer():
@@ -92,6 +101,8 @@ if __name__ == '__main__':
         print('Using default values: {} and ${}'.format(pair, invest))
 
     # run server in background
-    threading.Thread(target=runServer, name='server').start()
+    serverThread = threading.Thread(target=runServer, name='server')
+    # serverThread.setDaemon(True)
+    serverThread.start()
     print('Sent webserver to background \n')
     threader.run()
