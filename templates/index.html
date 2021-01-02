@@ -35,8 +35,25 @@
                 return false;
             });
         });
+        $(function () {
+            $('a#toggle_predicting_btn').on('click', function (e) {
+                e.preventDefault()
+                $.getJSON('/toggle_predicting_btn',
+                    function (data) {
+                        //do nothing
+                    });
+
+                $('#feedback').load(location.href + ' #info');
+                return false;
+
+            });
+
+        });
     </script>
     <div id=console>
+        <form>
+            <a href=# id=toggle_predicting_btn><button class='btn'>Mode</button></a>
+        </form>
         <form>
             <a href=# id=restart_btn><button class='btn'>Restart</button></a>
         </form>
@@ -44,34 +61,52 @@
             <a href=# id=quit_btn><button class='btn'>Quit</button></a>
         </form>
     </div>
-    <div id="dash">
-        <h1>Current Stats</h1>
-        <div id="refresh1">
-            <div id="latest_div">
-                {{ latest|safe }}
+    <div id="tables-and-log">
+        <div id="dash">
+            <h1>Current Stats</h1>
+            <div id="refresh1">
+                <div id="latest_div">
+                    {{ latest|safe }}
+                </div>
+            </div>
+        </div>
+        <div id="log_container">
+            <h1>Log</h1>
+            <div id="refresh2">
+                <div id="log_div">
+                    {{ log|safe }}
+                </div>
             </div>
         </div>
     </div>
-    <div id="log_container">
-        <h1>Log</h1>
-        <div id="refresh2">
-            <div id="log_div">
-                {{ log|safe }}
-            </div>
-        </div>
+    <div id="data">
+
     </div>
-    <div class="footer">
-        {{ info }}
+    <div id="footer">
+        {{ footer }}
     </div>
-    <div class="build">
+    <div id="build">
         Build: {{ build }}
+    </div>
+    <div id="feedback">
+        <div id="info">
+            {{ info|safe }}
+        </div>
     </div>
     <style>
         * {
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        .footer {
+        #tables-and-log {
+            width: 50%;
+        }
+
+        #data {
+            display: none;
+        }
+
+        #footer {
             position: fixed;
             bottom: 0;
             right: 0;
@@ -82,10 +117,10 @@
             color: black;
             text-align: center;
             font-family: monospace;
-            margin-left: 80px;
+            margin-left: 100px;
         }
 
-        .build {
+        #build {
             position: fixed;
             top: 0;
             right: 0;
@@ -96,6 +131,22 @@
             color: black;
             text-align: center;
             font-family: monospace;
+        }
+
+        #info {
+            position: fixed;
+            vertical-align: middle;
+            bottom: 50vh;
+            right: 0;
+            margin: 10px;
+            border: 1px grey solid;
+            padding: 5px;
+            padding-right: 10px;
+            background-color: white;
+            color: black;
+            text-align: left;
+            font-family: monospace;
+            margin-left: 80px;
         }
 
         table {
@@ -146,7 +197,7 @@
             text-decoration: none;
             display: inline-block;
             font-family: Arial, Helvetica, sans-serif;
-            width: 70px;
+            width: 90px;
         }
 
         .btn:hover {

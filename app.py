@@ -25,15 +25,31 @@ threader = ThreadedTrader(
     pair=pair, headers=headers, retrain_every=10, initial_investment=invest)
 
 
-def getInfo():
+def getFooter():
     l = list(platform.uname())
     return 'System Info: '+' - '.join(l)
+
+
+def getInfo():
+    #print('****', threader.predicting)
+    return 'Pair: [{}]<br>Investing ${:.2f}<br>Predicting:  {}'.format(' - '.join(pair).upper(), invest, threader.predicting)
+
+# routes
 
 
 @app.route('/restart_btn')
 def restart_btn():
     # dont know what to put here yet
     return ('Done (/restart_btn)')
+
+
+@app.route('/toggle_predicting_btn')
+def toggle_predicting_btn():
+    if threader.predicting:
+        threader.predicting = False
+    elif threader.predicting == False:
+        threader.predicting = True
+    return ('Done (/toggle_predicting_btn)')
 
 
 @app.route('/quit_btn')
@@ -55,7 +71,7 @@ def table():
     else:
         top_row = 'No data yet'
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', info=getInfo(), build='0.8.8', latest=top_row, log=log)
+    return render_template('index.html', footer=getFooter(), build='0.8.9', latest=top_row, log=log, info=getInfo())
 
 
 def runServer():

@@ -1,6 +1,6 @@
 # inputs: version
 # usage: $ ./build 1.0.1
 
-docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t pycoin . --push # build docker image
+docker buildx build -t pycoin . --push # build docker image
 docker tag pycoin ckinateder/pycoin:$1  # tag docker image
 docker push ckinateder/pycoin:$1  # push

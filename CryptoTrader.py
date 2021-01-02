@@ -134,56 +134,59 @@ class ThreadedTrader:
             self.current_df = self.predictor.createFrame()  # re update frame
 
             try:
-                if len(self.current_df) >= self.smallest_size:
-                    current_model = self.predictor.loadModel()
-                    # only do this once it can verify last 2400 CONTINUOUS DATA
-                    decision = self.predictor.decideAction(
-                        self.current_df, current_model)
+                if self.predicting:
+                    if len(self.current_df) >= self.smallest_size:
+                        current_model = self.predictor.loadModel()
+                        # only do this once it can verify last 2400 CONTINUOUS DATA
+                        decision = self.predictor.decideAction(
+                            self.current_df, current_model)
 
-                    # buy or sell here
-                    current_price = self.current_df.iloc[-1][self.headers['price']]
-                    crypto_value = self.fiat/current_price  # in crypto
-                    dollar_value = self.crypto*current_price  # in usd
+                        # buy or sell here
+                        current_price = self.current_df.iloc[-1][self.headers['price']]
+                        crypto_value = self.fiat/current_price  # in crypto
+                        dollar_value = self.crypto*current_price  # in usd
 
-                    if decision == 'buy' and self.fiat >= dollar_value:
-                        self.crypto = self.crypto + crypto_value
-                        self.fiat = self.fiat - self.crypto*current_price
+                        if decision == 'buy' and self.fiat >= dollar_value:
+                            self.crypto = self.crypto + crypto_value
+                            self.fiat = self.fiat - self.crypto*current_price
+                            print(
+                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
+                                    self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                        elif decision == 'sell' and self.crypto >= crypto_value:
+                            if self.conservative and dollar_value >= self.initial_investment:  # so no loss from selling
+                                self.fiat = self.fiat + dollar_value
+                                self.crypto = self.crypto - self.fiat/current_price
+                                print(
+                                    '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                                        self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                            else:  # just do it
+                                self.fiat = self.fiat + dollar_value
+                                self.crypto = self.crypto - self.fiat/current_price
+                                print(
+                                    '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                                        self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                        else:
+                            print(
+                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
+                                    self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper(), dollar_value))
+
+                        self.total_net = (((self.fiat/self.initial_investment) +
+                                           ((self.crypto*current_price)/self.initial_investment))*100)-100
+
                         print(
-                            '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
-                                self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
-                    elif decision == 'sell' and self.crypto >= crypto_value:
-                        if self.conservative and dollar_value >= self.initial_investment:  # so no loss from selling
-                            self.fiat = self.fiat + dollar_value
-                            self.crypto = self.crypto - self.fiat/current_price
-                            print(
-                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                                    self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
-                        else:  # just do it
-                            self.fiat = self.fiat + dollar_value
-                            self.crypto = self.crypto - self.fiat/current_price
-                            print(
-                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                                    self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                            '+ Total net: {:.3f}%\n   (since {})\n'.format(self.total_net, self.start_time.replace(microsecond=0)))
+                        # end transaction
+
+                        #  save to log
+                        row = [datetime.now().replace(microsecond=0), decision, current_price, round(self.fiat, 2),
+                               round(self.crypto, 8), round(self.crypto*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
+                        self.logToCSV(row)
+                        #  end
                     else:
                         print(
-                            '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
-                                self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper(), dollar_value))
-
-                    self.total_net = (((self.fiat/self.initial_investment) +
-                                       ((self.crypto*current_price)/self.initial_investment))*100)-100
-
-                    print(
-                        '+ Total net: {:.3f}%\n   (since {})\n'.format(self.total_net, self.start_time.replace(microsecond=0)))
-                    # end transaction
-
-                    #  save to log
-                    row = [datetime.now().replace(microsecond=0), decision, current_price, round(self.fiat, 2),
-                           round(self.crypto, 8), round(self.crypto*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
-                    self.logToCSV(row)
-                    #  end
+                            '* Not predicting, dataset not big enough ({} < {})'.format(len(self.current_df), self.smallest_size))
                 else:
-                    print(
-                        '* Not predicting, dataset not big enough ({} < {})'.format(len(self.current_df), self.smallest_size))
+                    print('* Not predicting, toggled off ... just saving.')
             except sklearn.exceptions.NotFittedError as e:
                 print('* Model not fit yet - waiting til next cycle ({})'.format(e))
             except UnboundLocalError as e:
