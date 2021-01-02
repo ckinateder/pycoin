@@ -38,6 +38,14 @@
         });
         $(function () {
             $('a#toggle_predicting_btn').on('click', function (e) {
+                if (document.querySelector('#toggle_predicting_btn').innerHTML == '<button class="btn">Predicting</button>') {
+                    document.querySelector('#toggle_predicting_btn').innerHTML = '<button class="btn holding">Holding</button>';
+                }
+                else if (document.querySelector('#toggle_predicting_btn').innerHTML == '<button class="btn holding">Holding</button>') {
+                    document.querySelector('#toggle_predicting_btn').innerHTML = '<button class="btn">Predicting</button>';
+                }
+
+                console.log(document.querySelector('#toggle_predicting_btn').innerHTML);
                 e.preventDefault()
                 $.getJSON('/toggle_predicting_btn',
                     function (data) {
@@ -53,11 +61,13 @@
     </script>
     <div id=console>
         <form>
-            <a href=# id=toggle_predicting_btn><button class='btn'>Mode</button></a>
+            <a href=# id=toggle_predicting_btn><button class="btn">Predicting</button></a>
         </form>
+        <!--
         <form>
             <a href=# id=restart_btn><button class='btn'>Restart</button></a>
         </form>
+        -->
         <form>
             <a href=# id=quit_btn><button class='btn'>Quit</button></a>
         </form>
@@ -201,7 +211,7 @@
         }
 
         .btn {
-            transition-duration: 0.4s;
+            transition-duration: 0.1s;
             background-color: white;
             border: 2px solid black;
             color: black;
@@ -215,14 +225,18 @@
         }
 
         .btn:hover {
-            background-color: #16494d;
+            background-color: black;
             color: white;
         }
 
-        .btn:active {
-            background-color: #16494d;
-            border: 2px solid white;
+        .holding {
+            background-color: black;
             color: white;
+        }
+
+        .holding:hover {
+            background-color: white;
+            color: black;
         }
     </style>
 </body>
