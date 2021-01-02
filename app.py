@@ -73,14 +73,14 @@ def table():
         top_row = dataset.to_html(table_id='latest', index=False)
     # get pure csv
     head = pd.read_csv(threader.getFilename(threader.pair))
-    if len(head.values) >= 30:
-        head_html = head.iloc[-30:].iloc[::-1].to_html(table_id='csv')
+    if len(head.values) >= 20:
+        head_html = head.iloc[-20:].iloc[::-1].to_html(table_id='csv')
     else:
         head_html = head.iloc[-(len(head_html)) -
                               1:].iloc[::-1].to_html(table_id='csv')
 
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', footer=getFooter(), build='0.9.0', latest=top_row, log=log, info=getInfo(), head=head_html)
+    return render_template('index.html', footer=getFooter(), build='0.9.1', latest=top_row, log=log, info=getInfo(), head=head_html)
 
 
 def runServer():

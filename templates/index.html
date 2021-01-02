@@ -4,70 +4,20 @@
 
 <head>
     <title>pycoin log</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
 <body>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-
-    <script type="text/javascript">
-        setInterval("my_function();", 5000);
-        function my_function() {
-            $('#refresh1').load(location.href + ' #latest_div');
-            $('#refresh2').load(location.href + ' #log_div');
-            $('#data').load(location.href + ' #head-of-data');
-        }
-        $(function () {
-            $('a#restart_btn').on('click', function (e) {
-                e.preventDefault()
-                $.getJSON('/restart_btn',
-                    function (data) {
-                        //do nothing
-                    });
-                return false;
-            });
-        });
-        $(function () {
-            $('a#quit_btn').on('click', function (e) {
-                e.preventDefault()
-                $.getJSON('/quit_btn',
-                    function (data) {
-                        //do nothing
-                    });
-                return false;
-            });
-        });
-        $(function () {
-            $('a#toggle_predicting_btn').on('click', function (e) {
-                if (document.querySelector('#toggle_predicting_btn').innerHTML == '<button class="btn">Predicting</button>') {
-                    document.querySelector('#toggle_predicting_btn').innerHTML = '<button class="btn holding">Holding</button>';
-                }
-                else if (document.querySelector('#toggle_predicting_btn').innerHTML == '<button class="btn holding">Holding</button>') {
-                    document.querySelector('#toggle_predicting_btn').innerHTML = '<button class="btn">Predicting</button>';
-                }
-
-                console.log(document.querySelector('#toggle_predicting_btn').innerHTML);
-                e.preventDefault()
-                $.getJSON('/toggle_predicting_btn',
-                    function (data) {
-                        //do nothing
-                    });
-
-                $('#feedback').load(location.href + ' #info');
-                return false;
-
-            });
-
-        });
-    </script>
     <div id=console>
         <form>
             <a href=# id=toggle_predicting_btn><button class="btn">Predicting</button></a>
         </form>
         <!--
-        <form>
-            <a href=# id=restart_btn><button class='btn'>Restart</button></a>
-        </form>
-        -->
+            <form>
+                <a href=# id=restart_btn><button class='btn'>Restart</button></a>
+            </form>
+            -->
         <form>
             <a href=# id=quit_btn><button class='btn'>Quit</button></a>
         </form>
@@ -108,137 +58,7 @@
             {{ info|safe }}
         </div>
     </div>
-    <style>
-        * {
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        #panels-both {
-            width: 100%;
-            margin: auto;
-            padding-top: 2vh;
-        }
-
-        #tables-and-log {
-            float: left;
-            width: 48%;
-        }
-
-        #data {
-
-            float: right;
-            width: 48%;
-        }
-
-        #footer {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-            margin: 10px;
-            border: 1px grey solid;
-            padding: 5px 5px 5px 5px;
-            background-color: white;
-            color: black;
-            text-align: center;
-            font-family: monospace;
-            margin-left: 100px;
-        }
-
-        #build {
-            position: fixed;
-            top: 0;
-            right: 0;
-            margin: 10px;
-            border: 1px grey solid;
-            padding: 5px 5px 5px 5px;
-            background-color: white;
-            color: black;
-            text-align: center;
-            font-family: monospace;
-        }
-
-        #info {
-            position: fixed;
-            vertical-align: middle;
-            bottom: 50vh;
-            right: 0;
-            margin: 10px;
-            border: 1px grey solid;
-            padding: 5px;
-            padding-right: 10px;
-            background-color: white;
-            color: black;
-            text-align: left;
-            font-family: monospace;
-            margin-left: 80px;
-        }
-
-        table {
-            border-collapse: collapse;
-            font-size: .8em;
-        }
-
-        td,
-        th {
-            border: 1px solid #999;
-            padding: 0.5rem;
-            text-align: left;
-        }
-
-        #dash {
-            display: inline-block;
-            border: 2px solid black;
-            padding: 20px;
-            width: auto;
-        }
-
-        #console {
-            background-color: white;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            margin: 10px;
-        }
-
-        #log_container {
-            margin-top: 20px;
-            padding: 20px;
-            width: auto;
-        }
-
-        h1 {
-            margin-top: 0;
-        }
-
-        .btn {
-            transition-duration: 0.1s;
-            background-color: white;
-            border: 2px solid black;
-            color: black;
-            border-radius: 2px;
-            padding: 5px 15px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-family: Arial, Helvetica, sans-serif;
-            width: 90px;
-        }
-
-        .btn:hover {
-            background-color: black;
-            color: white;
-        }
-
-        .holding {
-            background-color: black;
-            color: white;
-        }
-
-        .holding:hover {
-            background-color: white;
-            color: black;
-        }
-    </style>
+    <script src="/static/js/handlers.js" charset="utf-8"></script>
 </body>
 
 </html>
