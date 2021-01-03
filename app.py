@@ -122,7 +122,7 @@ def table():
                               1:].iloc[::-1].to_html(table_id='csv')
 
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', footer=getFooter(), build='0.9.2', latest=top_row, log=log, info=getInfo(), head=head_html)
+    return render_template('index.html', footer=getFooter(), build='0.9.3', latest=top_row, log=log, info=getInfo(), head=head_html)
 
 
 def runServer():
