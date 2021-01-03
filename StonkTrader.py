@@ -17,12 +17,12 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class ThreadedTrader:
-    def __init__(self, pair, headers, retrain_every, initial_investment, fees):
+    def __init__(self, pair, headers, retrain_every, initial_investment, fees=False):
         self.headers = headers
         self.fiat = initial_investment
         self.initial_investment = initial_investment
         self.lowest_sell_threshold = initial_investment
-        self.crypto = 0
+        self.stonk = 0
         self.pair = pair
         self.filename = self.getFilename(pair)
         self.retrain_every = retrain_every*60
@@ -32,7 +32,7 @@ class ThreadedTrader:
                                                        units=256,
                                                        batch_size=1,
                                                        pair=pair,
-                                                       ext='kraken',
+                                                       ext='alpaca',
                                                        cutpoint=2400,
                                                        important_headers=headers,
                                                        verbose=2)
@@ -45,11 +45,6 @@ class ThreadedTrader:
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
         self.conservative = True
         self.predicting = True  # for pausing
-        self.fees_applied = fees
-        self.fee = 0
-        if self.fees_applied:
-            self.fee = float(self.getFees()['kraken']['maker'])/100
-            print('* Fee applied: {}%'.format(self.fee*100))
         self.last_time_trained = 0
 
         # reset file
@@ -86,7 +81,7 @@ class ThreadedTrader:
         '''
         Gets the appropiate filename given a pair.
         '''
-        return 'data/'+'-'.join(pair)+'_kraken.csv'
+        return 'data/'+'-'.join(pair)+'_alpaca.csv'
 
     def getFees(self):
         '''
@@ -155,39 +150,39 @@ class ThreadedTrader:
 
                         # buy or sell here
                         current_price = self.current_df.iloc[-1][self.headers['price']]
-                        crypto_value = self.fiat/current_price  # in crypto
-                        dollar_value = self.crypto*current_price  # in usd
+                        stonk_value = self.fiat/current_price  # in crypto
+                        dollar_value = self.stonk*current_price  # in usd
 
-                        if decision == 'buy' and self.fiat >= crypto_value*current_price*(1+self.fee):
-                            self.crypto = self.crypto + crypto_value
-                            self.fiat = self.fiat - self.crypto * \
-                                current_price*(1+self.fee)
+                        if decision == 'buy' and self.fiat >= stonk_value*current_price:
+                            self.stonk = self.stonk + stonk_value
+                            self.fiat = self.fiat - self.stonk * \
+                                current_price
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
-                                    self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
-                        elif decision == 'sell' and self.crypto >= crypto_value:
+                                    self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
+                        elif decision == 'sell' and self.stonk >= stonk_value:
                             if self.conservative:
                                 # so no loss from selling
-                                if dollar_value*(1-self.fee) >= self.lowest_sell_threshold:
+                                if dollar_value >= self.lowest_sell_threshold:
                                     self.fiat = self.fiat + \
-                                        dollar_value*(1-self.fee)
-                                    self.crypto = self.crypto - self.fiat/current_price
+                                        dollar_value
+                                    self.stonk = self.stonk - self.fiat/current_price
                                     print(
                                         '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                                            self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                                            self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
                             else:  # just do it
                                 self.fiat = self.fiat + dollar_value
-                                self.crypto = self.crypto - self.fiat/current_price
+                                self.stonk = self.stonk - self.fiat/current_price
                                 print(
                                     '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                                        self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                                        self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
                         else:
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
-                                    self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper(), dollar_value))
+                                    self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value))
 
                         self.total_net = (((self.fiat/self.initial_investment) +
-                                           ((self.crypto*current_price)/self.initial_investment))*100)-100
+                                           ((self.stonk*current_price)/self.initial_investment))*100)-100
 
                         print(
                             '+ Total net: {:.3f}%\n   (since {})\n'.format(self.total_net, self.start_time.replace(microsecond=0)))
@@ -195,7 +190,7 @@ class ThreadedTrader:
 
                         #  save to log
                         row = [datetime.now().replace(microsecond=0), decision, current_price, round(self.fiat, 2),
-                               round(self.crypto, 8), round(self.crypto*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
+                               round(self.stonk, 8), round(self.stonk*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
                         self.logToCSV(row)
                         #  end
                     else:
