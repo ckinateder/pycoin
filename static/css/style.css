@@ -31,7 +31,7 @@
     color: black;
     text-align: center;
     font-family: monospace;
-    margin-left: 100px;
+    margin-left: 120px;
 }
 
 #build {
@@ -111,7 +111,7 @@ h1 {
     text-decoration: none;
     display: inline-block;
     font-family: Arial, Helvetica, sans-serif;
-    width: 90px;
+    width: 100px;
 }
 
 .btn:hover {

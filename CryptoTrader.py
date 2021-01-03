@@ -21,6 +21,7 @@ class ThreadedTrader:
         self.headers = headers
         self.fiat = initial_investment
         self.initial_investment = initial_investment
+        self.lowest_sell_threshold = initial_investment
         self.crypto = 0
         self.pair = pair
         self.filename = self.getFilename(pair)
@@ -43,6 +44,7 @@ class ThreadedTrader:
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
         self.conservative = True
         self.predicting = True  # for pausing
+        self.fees = False
         self.last_time_trained = 0
 
         # reset file
@@ -158,7 +160,7 @@ class ThreadedTrader:
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                     self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                         elif decision == 'sell' and self.crypto >= crypto_value:
-                            if self.conservative and dollar_value >= self.initial_investment:  # so no loss from selling
+                            if self.conservative and dollar_value >= self.lowest_sell_threshold:  # so no loss from selling
                                 self.fiat = self.fiat + dollar_value
                                 self.crypto = self.crypto - self.fiat/current_price
                                 print(

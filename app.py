@@ -46,8 +46,10 @@ def getInfo():
     return 'Pair: [{}]<br>\
         Investing ${:.2f}<br>\
             Predicting: {}<br>\
+            Conservative: {}<br>\
+            Fees: {}<br>\
             Last time trained: <br>\
-            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
+            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, threader.fees, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
 
 # routes
 
@@ -73,6 +75,19 @@ def toggle_predicting_btn():
     elif threader.predicting == False:
         threader.predicting = True
     return ('Done (/toggle_predicting_btn)')
+
+
+@app.route('/toggle_conservative_btn')
+def toggle_conservative_btn():
+    '''
+    Toggle conservattive on and off.
+    '''
+    if threader.conservative:
+        threader.conservative = False
+    elif threader.conservative == False:
+        threader.lowest_sell_threshold = threader.fiat  # important
+        threader.conservative = True
+    return ('Done (/toggle_conservative_btn)')
 
 
 @app.route('/quit_btn')
@@ -107,7 +122,7 @@ def table():
                               1:].iloc[::-1].to_html(table_id='csv')
 
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', footer=getFooter(), build='0.9.1', latest=top_row, log=log, info=getInfo(), head=head_html)
+    return render_template('index.html', footer=getFooter(), build='0.9.2', latest=top_row, log=log, info=getInfo(), head=head_html)
 
 
 def runServer():
