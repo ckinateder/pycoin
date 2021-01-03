@@ -17,7 +17,7 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class ThreadedTrader:
-    def __init__(self, pair, headers, retrain_every, initial_investment):
+    def __init__(self, pair, headers, retrain_every, initial_investment, fees):
         self.headers = headers
         self.fiat = initial_investment
         self.initial_investment = initial_investment
@@ -44,7 +44,11 @@ class ThreadedTrader:
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
         self.conservative = True
         self.predicting = True  # for pausing
-        self.fees = False
+        self.fees_applied = fees
+        self.fee = 0
+        if self.fees_applied:
+            self.fee = float(self.getFees()['kraken']['maker'])/100
+            print('* Fee applied: {}%'.format(self.fee*100))
         self.last_time_trained = 0
 
         # reset file
@@ -153,19 +157,23 @@ class ThreadedTrader:
                         crypto_value = self.fiat/current_price  # in crypto
                         dollar_value = self.crypto*current_price  # in usd
 
-                        if decision == 'buy' and self.fiat >= dollar_value:
+                        if decision == 'buy' and self.fiat >= crypto_value*current_price*(1+self.fee):
                             self.crypto = self.crypto + crypto_value
-                            self.fiat = self.fiat - self.crypto*current_price
+                            self.fiat = self.fiat - self.crypto * \
+                                current_price*(1+self.fee)
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                     self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                         elif decision == 'sell' and self.crypto >= crypto_value:
-                            if self.conservative and dollar_value >= self.lowest_sell_threshold:  # so no loss from selling
-                                self.fiat = self.fiat + dollar_value
-                                self.crypto = self.crypto - self.fiat/current_price
-                                print(
-                                    '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                                        self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                            if self.conservative:
+                                # so no loss from selling
+                                if dollar_value*(1-self.fee) >= self.lowest_sell_threshold:
+                                    self.fiat = self.fiat + \
+                                        dollar_value*(1-self.fee)
+                                    self.crypto = self.crypto - self.fiat/current_price
+                                    print(
+                                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                                            self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                             else:  # just do it
                                 self.fiat = self.fiat + dollar_value
                                 self.crypto = self.crypto - self.fiat/current_price

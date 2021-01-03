@@ -28,7 +28,7 @@ invest = 200
 
 # create threader
 threader = ThreadedTrader(
-    pair=pair, headers=headers, retrain_every=10, initial_investment=invest)
+    pair=pair, headers=headers, retrain_every=10, initial_investment=invest, fees=True)
 
 
 def getFooter():
@@ -47,7 +47,7 @@ def getInfo():
         Investing ${:.2f}<br>\
             Predicting: {}<br>\
             Conservative: {}<br>\
-            Fees: {}<br>\
+            Fees: {}%<br>\
             Last time trained: <br>\
             {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, threader.fees, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
 
