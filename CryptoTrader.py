@@ -17,7 +17,7 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class ThreadedTrader:
-    def __init__(self, pair, headers, retrain_every, initial_investment, fees):
+    def __init__(self, pair, headers, retrain_every, initial_investment, fees=False):
         self.headers = headers
         self.fiat = initial_investment
         self.initial_investment = initial_investment
@@ -62,6 +62,15 @@ class ThreadedTrader:
         with open(self.log_path, 'w+') as filename:
             writer = csv.writer(filename)
             writer.writerow(headers)
+
+    def toggleFees(self):
+        if self.fees_applied:
+            self.fees_applied = False
+            self.fee = 0
+        else:
+            self.fees_applied = True
+            self.fee = float(self.getFees()['kraken']['maker'])/100
+            print('* Fee applied: {}%'.format(self.fee*100))
 
     def utc_to_local(self, utc_dt):
         '''
@@ -157,14 +166,15 @@ class ThreadedTrader:
                         crypto_value = self.fiat/current_price  # in crypto
                         dollar_value = self.crypto*current_price  # in usd
 
-                        if decision == 'buy' and self.fiat >= crypto_value*current_price*(1+self.fee):
-                            self.crypto = self.crypto + crypto_value
+                        if decision == 'buy':
+                            self.crypto = self.crypto + \
+                                crypto_value*(1-self.fee)
                             self.fiat = self.fiat - self.crypto * \
-                                current_price*(1+self.fee)
+                                current_price
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                     self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
-                        elif decision == 'sell' and self.crypto >= crypto_value:
+                        elif decision == 'sell':
                             if self.conservative:
                                 # so no loss from selling
                                 if dollar_value*(1-self.fee) >= self.lowest_sell_threshold:

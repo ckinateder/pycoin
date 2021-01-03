@@ -23,8 +23,8 @@ headers = {
     'price': 'a'  # the column used for price
 }
 
-pair = ['eth', 'usd']
-invest = 200
+pair = ['xbt', 'usd']
+invest = 3000
 
 # create threader
 threader = ThreadedTrader(
@@ -48,8 +48,9 @@ def getInfo():
             Predicting: {}<br>\
             Conservative: {}<br>\
             Fees: {}%<br>\
+            Fees?: {}<br>\
             Last time trained: <br>\
-            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, threader.fee*100, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
+            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, threader.fee*100, threader.fees_applied, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
 
 # routes
 
@@ -82,11 +83,14 @@ def toggle_conservative_btn():
     '''
     Toggle conservattive on and off.
     '''
+    '''
     if threader.conservative:
         threader.conservative = False
     elif threader.conservative == False:
         threader.lowest_sell_threshold = threader.fiat  # important
         threader.conservative = True
+    '''
+    threader.toggleFees()
     return ('Done (/toggle_conservative_btn)')
 
 
@@ -122,7 +126,7 @@ def table():
                               1:].iloc[::-1].to_html(table_id='csv')
 
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', footer=getFooter(), build='0.9.2', latest=top_row, log=log, info=getInfo(), head=head_html)
+    return render_template('index.html', footer=getFooter(), build='0.9.3', latest=top_row, log=log, info=getInfo(), head=head_html)
 
 
 def runServer():
