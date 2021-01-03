@@ -49,7 +49,7 @@ def getInfo():
             Conservative: {}<br>\
             Fees: {}%<br>\
             Last time trained: <br>\
-            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, threader.fee, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
+            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, threader.fee*100, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
 
 # routes
 
