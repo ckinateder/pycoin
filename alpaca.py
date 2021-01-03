@@ -86,5 +86,5 @@ class AlpacaTrader:
 
 
 if __name__ == '__main__':
-    tester = AlpacaTrader()
+    tester = AlpacaTrader(paper=True)
     tester.test()
