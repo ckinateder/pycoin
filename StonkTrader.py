@@ -10,6 +10,7 @@ import os
 import sklearn
 import sys
 import json
+import alpaca
 from guppy import hpy
 
 __author__ = 'Calvin Kinateder'
@@ -23,10 +24,10 @@ class ThreadedTrader:
         self.initial_investment = initial_investment
         self.lowest_sell_threshold = initial_investment
         self.stonk = 0
-        self.pair = pair
+        self.pair = pair  # [{ticker}, 'usd']
         self.filename = self.getFilename(pair)
         self.retrain_every = retrain_every*60
-        self.k_trader = kraken.KrakenTrader()
+        self.a_trader = alpaca.AlpacaTrader()
         self.predictor = CryptoPredict.CryptoPredictor(lookback=1,
                                                        epochs=13,
                                                        units=256,
@@ -132,11 +133,11 @@ class ThreadedTrader:
         '''
         while True:
             try:
-                self.k_trader.saveTickerPair(self.pair)
+                self.a_trader.saveTickerPair(self.pair)
             except:
                 print('api call failed...trying again in 5')
                 time.sleep(5)
-                self.k_trader.saveTickerPair(self.pair)
+                self.a_trader.saveTickerPair(self.pair)
 
             self.current_df = self.predictor.createFrame()  # re update frame
 
