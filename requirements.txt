@@ -1,4 +1,5 @@
 absl-py==0.11.0
+alpaca-trade-api==0.51.0
 astunparse==1.6.3
 cachetools==4.2.0
 certifi==2020.12.5
@@ -53,7 +54,9 @@ tensorflow-estimator==2.4.0
 termcolor==1.1.0
 threadpoolctl==2.1.0
 typing-extensions==3.7.4.3
-urllib3==1.26.2
+urllib3==1.25.11
+websocket-client==0.57.0
+websockets==8.1
 Werkzeug==1.0.1
 wrapt==1.12.1
 zipp==3.4.0
