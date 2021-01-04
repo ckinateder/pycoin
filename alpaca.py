@@ -41,7 +41,7 @@ class AlpacaTrader:
         '''
 
         quote = self.api.get_last_quote(ticker.upper()).__dict__['_raw']
-        print(quote)
+        print('Recieved from \'{}\': {}'.format(ticker, quote))
         filename = 'data/'+ticker+'_alpaca.csv'
         if not os.path.isfile(filename):
             header = list()
