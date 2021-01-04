@@ -167,30 +167,19 @@ class ThreadedTrader:
                         crypto_value = self.fiat/current_price  # in crypto
                         dollar_value = self.crypto*current_price  # in usd
 
-                        crypto_amount = crypto_value*(1-self.fee)
-                        dollar_amount = dollar_value*(1-self.fee)
-
                         if decision == 'buy' and self.fiat >= dollar_value:
-                            # add check for fees difference here
-                            self.crypto = self.crypto + crypto_amount
-                            self.fiat = self.fiat - crypto_amount * \
-                                current_price*(1+self.fee)
+                            self.crypto = self.crypto + crypto_value
+                            self.fiat = self.fiat - self.crypto*current_price
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                     self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                         elif decision == 'sell' and self.crypto >= crypto_value:
-                            if self.conservative:  # so no loss from selling
-                                # add check for fees difference here
-                                if dollar_value*(1-self.fee) >= self.lowest_sell_threshold:
-                                    self.fiat = self.fiat + dollar_amount
-                                    self.crypto = self.crypto - dollar_amount / \
-                                        current_price*(1+self.fee)
-                                    print(
-                                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                                            self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
-                                else:
-                                    print(
-                                        '* TRADE CANCELED DUE TO CONSERVATION SET TO TRUE')
+                            if self.conservative and dollar_value >= self.initial_investment:  # so no loss from selling
+                                self.fiat = self.fiat + dollar_value
+                                self.crypto = self.crypto - self.fiat/current_price
+                                print(
+                                    '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                                        self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                             else:  # just do it
                                 self.fiat = self.fiat + dollar_value
                                 self.crypto = self.crypto - self.fiat/current_price
