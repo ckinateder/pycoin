@@ -21,7 +21,7 @@ class ThreadedTrader:
         self.headers = headers
         self.fiat = initial_investment
         self.initial_investment = initial_investment
-        self.lowest_sell_threshold = initial_investment
+        self.lowest_sell_threshold = self.initial_investment
         self.crypto = 0
         self.pair = pair
         self.filename = self.getFilename(pair)
@@ -170,7 +170,7 @@ class ThreadedTrader:
                         crypto_amount = crypto_value*(1-self.fee)
                         dollar_amount = dollar_value*(1-self.fee)
 
-                        if decision == 'buy':
+                        if decision == 'buy' and self.fiat >= dollar_value:
                             # add check for fees difference here
                             self.crypto = self.crypto + crypto_amount
                             self.fiat = self.fiat - crypto_amount * \
@@ -178,7 +178,7 @@ class ThreadedTrader:
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                     self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
-                        elif decision == 'sell':
+                        elif decision == 'sell' and self.crypto >= crypto_value:
                             if self.conservative:  # so no loss from selling
                                 # add check for fees difference here
                                 if dollar_value*(1-self.fee) >= self.lowest_sell_threshold:
@@ -188,6 +188,9 @@ class ThreadedTrader:
                                     print(
                                         '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
                                             self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
+                                else:
+                                    print(
+                                        '* TRADE CANCELED DUE TO CONSERVATION SET TO TRUE')
                             else:  # just do it
                                 self.fiat = self.fiat + dollar_value
                                 self.crypto = self.crypto - self.fiat/current_price

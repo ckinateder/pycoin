@@ -14,6 +14,8 @@ import sys
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
 
+BUILD = '0.9.4'
+
 app = Flask(__name__)
 
 # headers for csv data
@@ -23,7 +25,7 @@ headers = {
     'price': 'a'  # the column used for price
 }
 
-pair = ['xbt', 'usd']
+pair = ['ltc', 'usd']
 invest = 3000
 
 # create threader
@@ -83,7 +85,6 @@ def toggle_conservative_btn():
     '''
     Toggle conservattive on and off.
     '''
-    '''
     if threader.conservative:
         threader.conservative = False
     elif threader.conservative == False:
@@ -91,6 +92,7 @@ def toggle_conservative_btn():
         threader.conservative = True
     '''
     threader.toggleFees()
+    '''
     return ('Done (/toggle_conservative_btn)')
 
 
@@ -126,7 +128,7 @@ def table():
                               1:].iloc[::-1].to_html(table_id='csv')
 
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', footer=getFooter(), build='0.9.3', latest=top_row, log=log, info=getInfo(), head=head_html)
+    return render_template('index.html', footer=getFooter(), build=BUILD, latest=top_row, log=log, info=getInfo(), head=head_html, title='pycoin {} - {}%'.format(BUILD, round(threader.total_net, 3)))
 
 
 def runServer():
@@ -134,18 +136,6 @@ def runServer():
 
 
 if __name__ == '__main__':
-    '''
-    Sample call -
-    $ python3 app.py xbt usd 500
-    '''
-    if len(sys.argv) == 4:
-        pair = sys.argv[1:3]
-        invest = float(sys.argv[3])
-    else:
-        # default
-        print('Not enough arguments given - must be in format\n  $ python3 CryptoTrader.py (crypto) (usd) (amount to invest)')
-        print('Using default values: {} and ${}'.format(pair, invest))
-
     # run server in background
     serverThread = threading.Thread(target=runServer, name='server')
     # serverThread.setDaemon(True)
