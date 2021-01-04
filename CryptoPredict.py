@@ -33,8 +33,9 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 class CryptoPredictor:
 
-    def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, important_headers={'timestamp': 'time', 'price': 'close'}, pair=['xbt', 'usd'], cutpoint=1800, verbose=1):
+    def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, important_headers={'timestamp': 'time', 'price': 'close'}, pair=['xbt', 'usd'], ext='kraken', cutpoint=1800, verbose=1):
         self.models_path = 'models/'
+        self.ext = ext
         self.csvset = 'data/'+self.getFilename(pair)+'.csv'
         self.pair = pair
         self.cutpoint = cutpoint  # only use last x datapoints
@@ -53,7 +54,7 @@ class CryptoPredictor:
         Creates the right filename from the given pair. 
         All files associated with this currency will follow the same format.
         '''
-        return '-'.join(pair)+'_kraken'
+        return '-'.join(pair)+'_'+self.ext
 
     def loadCSV(self, filename):
         '''

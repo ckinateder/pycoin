@@ -32,6 +32,7 @@ class ThreadedTrader:
                                                        units=256,
                                                        batch_size=1,
                                                        pair=pair,
+                                                       ext='kraken',
                                                        cutpoint=2400,
                                                        important_headers=headers,
                                                        verbose=2)
@@ -166,21 +167,24 @@ class ThreadedTrader:
                         crypto_value = self.fiat/current_price  # in crypto
                         dollar_value = self.crypto*current_price  # in usd
 
+                        crypto_amount = crypto_value*(1-self.fee)
+                        dollar_amount = dollar_value*(1-self.fee)
+
                         if decision == 'buy':
-                            self.crypto = self.crypto + \
-                                crypto_value*(1-self.fee)
-                            self.fiat = self.fiat - self.crypto * \
-                                current_price
+                            # add check for fees difference here
+                            self.crypto = self.crypto + crypto_amount
+                            self.fiat = self.fiat - crypto_amount * \
+                                current_price*(1+self.fee)
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                     self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))
                         elif decision == 'sell':
-                            if self.conservative:
-                                # so no loss from selling
+                            if self.conservative:  # so no loss from selling
+                                # add check for fees difference here
                                 if dollar_value*(1-self.fee) >= self.lowest_sell_threshold:
-                                    self.fiat = self.fiat + \
-                                        dollar_value*(1-self.fee)
-                                    self.crypto = self.crypto - self.fiat/current_price
+                                    self.fiat = self.fiat + dollar_amount
+                                    self.crypto = self.crypto - dollar_amount / \
+                                        current_price*(1+self.fee)
                                     print(
                                         '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
                                             self.fiat, self.pair[1].upper(), self.crypto, self.pair[0].upper()))

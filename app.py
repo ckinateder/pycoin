@@ -28,7 +28,7 @@ invest = 3000
 
 # create threader
 threader = ThreadedTrader(
-    pair=pair, headers=headers, retrain_every=10, initial_investment=invest, fees=True)
+    pair=pair, headers=headers, retrain_every=10, initial_investment=invest, fees=False)
 
 
 def getFooter():
