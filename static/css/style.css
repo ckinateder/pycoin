@@ -3,6 +3,10 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
+#data_container{
+    margin-top: 20px;
+    padding: 20px;
+}
 
 #footer {
     position: fixed;

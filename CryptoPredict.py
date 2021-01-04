@@ -70,7 +70,7 @@ class CryptoPredictor:
                 columns=[self.important_headers['timestamp'], self.important_headers['price']])
         # setting index as date
         df['date'] = pd.to_datetime(
-            df[self.important_headers['timestamp']], unit='s')  # UNITS IS IMPORTANT
+            df[self.important_headers['timestamp']])  # UNITS IS IMPORTANT
         df.index = df.date
         # plot
         return df

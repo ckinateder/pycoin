@@ -34,11 +34,11 @@ class ThreadedTrader:
                                                        batch_size=1,
                                                        pair=pair,
                                                        ext='alpaca',
-                                                       cutpoint=2400,
+                                                       cutpoint=600,  # 300?
                                                        important_headers=headers,
                                                        verbose=2)
         self.current_df = self.predictor.createFrame()
-        self.smallest_size = 900
+        self.smallest_size = 20
         self.total_net = 0
         self.time_delay = 8
         self.start_time = datetime.now()
