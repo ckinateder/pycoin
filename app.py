@@ -47,9 +47,8 @@ def getInfo():
         Investing ${:.2f}<br>\
             Predicting: {}<br>\
             Conservative: {}<br>\
-            Fees: {}%<br>\
             Last time trained: <br>\
-            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, threader.fee*100, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
+            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
 
 # routes
 
@@ -80,7 +79,7 @@ def toggle_predicting_btn():
 @app.route('/toggle_conservative_btn')
 def toggle_conservative_btn():
     '''
-    Toggle conservattive on and off.
+    Toggle conservative on and off.
     '''
     if threader.conservative:
         threader.conservative = False

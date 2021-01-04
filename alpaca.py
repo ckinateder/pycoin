@@ -41,7 +41,6 @@ class AlpacaTrader:
         '''
 
         quote = self.api.get_last_quote(ticker.upper()).__dict__['_raw']
-        print(quote)
         filename = 'data/'+ticker+'_alpaca.csv'
         if not os.path.isfile(filename):
             header = list()
@@ -58,7 +57,7 @@ class AlpacaTrader:
         pandas.DataFrame([dropped]).to_csv(
             filename, mode='a', header=False, index=False)
         self.cleanup(filename, 4096)
-        return pandas.DataFrame([dropped])
+        return quote
 
     def submitOrder(self, ticker, qty, take_price, stop_loss):
         '''
@@ -86,5 +85,9 @@ class AlpacaTrader:
 
 
 if __name__ == '__main__':
+    headers = {
+        'timestamp': 'timestamp',
+        'price': 'askprice'  # the column used for price
+    }
     tester = AlpacaTrader(paper=True)
     tester.test()
