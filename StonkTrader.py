@@ -38,7 +38,7 @@ class ThreadedTrader:
                                                        important_headers=headers,
                                                        verbose=2)
         self.current_df = self.predictor.createFrame()
-        self.smallest_size = 1800
+        self.smallest_size = 900
         self.total_net = 0
         self.time_delay = 8
         self.start_time = datetime.now()

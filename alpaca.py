@@ -35,14 +35,13 @@ class AlpacaTrader:
             parsed.to_csv(filename, index=False)
             # drop early rows and then rewrite NOT APPEND
 
-    def saveTickerPair(self, ticker):
+    def saveTickerPair(self, pair):
         '''
         Saves latest price to file.
         '''
-
+        ticker = pair[0]
         quote = self.api.get_last_quote(ticker.upper()).__dict__['_raw']
-        print('Recieved from \'{}\': {}'.format(ticker, quote))
-        filename = 'data/'+ticker+'_alpaca.csv'
+        filename = 'data/'+'-'.join(pair)+'_alpaca.csv'
         if not os.path.isfile(filename):
             header = list()
             for i in quote.items():
@@ -51,6 +50,10 @@ class AlpacaTrader:
                 filename, mode='a', header=False, index=False)
 
         dropped = list()
+
+        quote['timestamp'] = quote['timestamp']/1000000  # convert from us to s
+        print('Recieved from \'{}\': {}'.format(ticker, quote))
+
         for i in quote.values():
             dropped.append(i)
 

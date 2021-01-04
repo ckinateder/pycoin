@@ -3,22 +3,6 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
-#panels-both {
-    width: 100%;
-    margin: auto;
-    padding-top: 2vh;
-}
-
-#tables-and-log {
-    float: left;
-    width: 48%;
-}
-
-#data {
-
-    float: right;
-    width: 48%;
-}
 
 #footer {
     position: fixed;

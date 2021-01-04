@@ -10,7 +10,7 @@ print(sys.argv[1:])
 while True:
     try:
         for i in range(1, len(sys.argv)):
-            pair = sys.argv[i]
+            pair = [sys.argv[i], 'usd']  # for compatibility
             ap.saveTickerPair(pair)
         time.sleep(10)
     except Exception as e:
