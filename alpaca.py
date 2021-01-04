@@ -41,12 +41,12 @@ class AlpacaTrader:
         '''
 
         quote = self.api.get_last_quote(ticker.upper()).__dict__['_raw']
+        print(quote)
         filename = 'data/'+ticker+'_alpaca.csv'
         if not os.path.isfile(filename):
             header = list()
             for i in quote.items():
                 header.append(i[0])
-            print(header)
             pandas.DataFrame([header]).to_csv(
                 filename, mode='a', header=False, index=False)
 
