@@ -56,7 +56,7 @@ def getInfo():
             Predicting: {}<br>\
             Conservative: {}<br>\
             Last time trained: <br>\
-            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
+            {}'.format(' - '.join(pair).upper(), threader.fiat, threader.predicting, threader.conservative, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
 
 # routes
 

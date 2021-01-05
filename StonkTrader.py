@@ -31,13 +31,13 @@ class ThreadedTrader:
                                                        batch_size=1,
                                                        pair=pair,
                                                        ext='alpaca',
-                                                       cutpoint=600,  # 300?
+                                                       cutpoint=1800,  # 300?
                                                        important_headers=headers,
                                                        verbose=2)
         self.current_df = self.predictor.createFrame()
         self.smallest_size = 20
         self.total_net = 0
-        self.time_delay = 8
+        self.time_delay = 5
         self.start_time = datetime.now()
         self.conservative = True
         self.predicting = True  # for pausing
@@ -46,6 +46,9 @@ class ThreadedTrader:
         self.lowest_sell_threshold = self.fiat
         self.initial_investment = self.fiat
         self.stonk = self.trader.getPosition(pair[0])
+
+        print('Starting with ${} and {} shares of {}.'.format(
+            self.fiat, self.stonk, self.pair[0]))
 
         # reset file
         headers = ['unix', 'action', 'price ({})'.format(self.pair[0]), 'balance ({})'.format(
@@ -91,7 +94,7 @@ class ThreadedTrader:
         process = psutil.Process(os.getpid())
         # in bytes
         logging.info(
-            '* Using {:.2f} MB of memory\n'.format(process.memory_info().rss/(1024*1024)))
+            'Using {:.2f} MB of memory\n'.format(process.memory_info().rss/(1024*1024)))
         if heapy:
             h = hpy()
             print(h.heap())
@@ -153,6 +156,8 @@ class ThreadedTrader:
                             if not self.trader.anyOpen(self.pair[0]):
                                 self.trader.submitOrder(
                                     self.pair[0], 'buy', math.floor(self.fiat/current_price))
+                                # self.lowest_sell_threshold = math.floor(
+                                # self.fiat/current_price)*current_price  # THIS MIGHJT NOT BE GOOD
                                 # change this\/?
                                 action_taken = 'buy'
                                 logging.info('Bought')
@@ -164,7 +169,7 @@ class ThreadedTrader:
                         elif decision == 'sell' and self.stonk >= stonk_value:
                             if self.conservative:
                                 # so no loss from selling
-                                if dollar_value >= self.lowest_sell_threshold:
+                                if dollar_value >= self.lowest_sell_threshold:  # change this line maybe
                                     if not self.trader.anyOpen(self.pair[0]):
                                         self.trader.submitOrder(
                                             self.pair[0], 'sell', self.stonk)
@@ -194,8 +199,6 @@ class ThreadedTrader:
                             logging.warning(
                                 'decision != action_taken - reasons unknown atm')
 
-                        print(
-                            '+ Total net: {:.3f}%\n   (since {})\n'.format(self.total_net, self.start_time.replace(microsecond=0)))
                         # end transaction
                         self.checkMemory()
 
@@ -227,7 +230,8 @@ class ThreadedTrader:
             except FileNotFoundError as e:
                 logging.warning(
                     'Model not found - {} ...'.format(e))
-
+            print('+ Total net: {:.3f}%\n   (since {})\n'.format(
+                self.total_net, self.start_time.replace(microsecond=0)))
             #  end
             time.sleep(self.time_delay)  # update current standings agaim
             self.fiat = self.trader.getCash()
@@ -258,4 +262,4 @@ class ThreadedTrader:
             logging.info('\nGood to go!\n')
 
         except (KeyboardInterrupt, SystemExit):
-            logging.error('Cancelled')
+            logging.fatal('Cancelled')
