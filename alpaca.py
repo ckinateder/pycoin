@@ -63,7 +63,7 @@ class AlpacaTrader:
 
         pandas.DataFrame([dropped]).to_csv(
             filename, mode='a', header=False, index=False)
-        self.cleanup(filename, 4096)
+        self.cleanup(filename, 10000)
         return quote
 
     def submitOrder(self, ticker, side, qty):

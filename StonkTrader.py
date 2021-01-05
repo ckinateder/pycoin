@@ -19,7 +19,7 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class ThreadedTrader:
-    def __init__(self, pair, headers, retrain_every, fees=False):
+    def __init__(self, pair, headers, retrain_every, fees=False, conservative=True):
         self.headers = headers
         self.pair = [pair[0].upper(), pair[1]]  # [{ticker}, 'usd']
         self.filename = self.getFilename(pair)
@@ -37,9 +37,9 @@ class ThreadedTrader:
         self.current_df = self.predictor.createFrame()
         self.smallest_size = 20
         self.total_net = 0
-        self.time_delay = 5
+        self.time_delay = 2
         self.start_time = datetime.now()
-        self.conservative = True
+        self.conservative = conservative
         self.predicting = True  # for pausing
         self.last_time_trained = 0
         self.fiat = self.trader.getCash()
@@ -195,49 +195,48 @@ class ThreadedTrader:
                             logging.info(
                                 '[Balance: {:.2f} {}, {:.8f} {} (valued at {:.2f} USD), (holding)]'.format(
                                     self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value))
-                        if decision != action_taken:
-                            logging.warning(
-                                'decision != action_taken - reasons unknown atm')
 
-                        # end transaction
-                        self.checkMemory()
-
-                        # update current standings agaim
-                        self.fiat = self.trader.getCash()
-                        self.stonk = self.trader.getPosition(self.pair[0])
-
-                        self.total_net = (((self.fiat/self.initial_investment) +
-                                           ((self.stonk*current_price)/self.initial_investment))*100)-100
-                        logging.info('Current Standings:\n  + Total net: {:.5f}%\n  + Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n  + Open trades? {}\n   ({})'.format(self.total_net,
-                                                                                                                                                                                          self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value, self.trader.anyOpen(self.pair[0]), action_taken))
-
-                        #  save to current log
-                        row = [datetime.now().replace(microsecond=0), action_taken, current_price, round(self.fiat, 2), round(self.stonk, 8), round(
-                            self.stonk*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
-                        self.logToCSV(row)
                     else:
                         logging.warning(
                             'Not predicting, dataset not big enough ({} < {})'.format(len(self.current_df), self.smallest_size))
+
+                    #  end
+                    # update current standings again
+                    time.sleep(self.time_delay)
+
+                    self.fiat = self.trader.getCash()
+                    self.stonk = self.trader.getPosition(self.pair[0])
+                    if decision != action_taken:
+                        logging.warning(
+                            'decision != action_taken - reasons unknown atm')
+
+                    # end transaction
+                    self.total_net = (((self.fiat/self.initial_investment) +
+                                       ((self.stonk*current_price)/self.initial_investment))*100)-100
+                    print('+ Total net: {:.3f}%\n   (since {})\n'.format(
+                        self.total_net, self.start_time.replace(microsecond=0)))
+                    logging.info('Current Standings:\n  + Total net: {:.5f}%\n  + Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n  + Open trades? {}\n   ({})'.format(self.total_net,
+                                                                                                                                                                                      self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value, self.trader.anyOpen(self.pair[0]), action_taken))
+                    #  save to current log
+                    row = [datetime.now().replace(microsecond=0), action_taken, current_price, round(self.fiat, 2), round(self.stonk, 8), round(
+                        self.stonk*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
+                    self.logToCSV(row)
+                    self.checkMemory()
                 else:
                     logging.info(
                         'Not predicting, toggled off ... just saving.')
             except sklearn.exceptions.NotFittedError as e:
+                time.sleep(self.time_delay)
                 logging.warning(
                     'Model not fit yet - waiting til next cycle ({})'.format(e))
             except UnboundLocalError as e:
+                time.sleep(self.time_delay)
                 logging.warning(
                     'Model not fit yet - waiting til next cycle ({})'.format(e))
             except FileNotFoundError as e:
+                time.sleep(self.time_delay)
                 logging.warning(
                     'Model not found - {} ...'.format(e))
-            print('+ Total net: {:.3f}%\n   (since {})\n'.format(
-                self.total_net, self.start_time.replace(microsecond=0)))
-            #  end
-            time.sleep(self.time_delay)  # update current standings agaim
-            self.fiat = self.trader.getCash()
-            self.stonk = self.trader.getPosition(self.pair[0])
-            logging.info('After time delay ({}) - [Balance: {:.2f} {}, {:.8f} {}]'.format(
-                self.time_delay, self.fiat, self.pair[1], self.stonk, self.pair[0]))
 
     def run(self):
         '''

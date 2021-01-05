@@ -294,26 +294,26 @@ class CryptoPredictor:
             if pair[0] < alpha and pair[1] > alpha:
                 decision = 'buy'
                 reason = '{} (last d/dx) < {} (alpha) < {} (next d/dx) - hit a valley'.format(
-                    pair[0], alpha, pair[1])
+                    round(pair[0], 3), alpha, round(pair[1], 3))
             elif pair[0] > alpha and pair[1] < alpha:
                 decision = 'sell'
                 reason = '{} (next d/dx) < {} (alpha) < {} (last d/dx) - hit a peak'.format(
-                    pair[1], alpha, pair[0])
+                    round(pair[1], 3), alpha, round(pair[0], 3))
             else:
                 decision = 'hold'
-                reason = 'did not cross origin: {} (last d/dx) | {} (alpha) | {} (next d/dx)'.format(
-                    pair[0], alpha, pair[1])
+                reason = 'did not cross alpha: {} (last d/dx) | {} (alpha) | {} (next d/dx)'.format(
+                    round(pair[0], 3), alpha, round(pair[1], 3))
 
             # output
             # print('\n'+SPACE_BARS)
             #print('@', datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
             # print(SPACE_BARS)
+            # logging.info(
+            #    'n-1: ${:.4f} (actual)\nn: ${:.4f} (actual)\n\nn-1: ${:.4f} (predicted)\nn: ${:.4f} (predicted)\nn+1: ${:.4f} (predicted)'.format(*raw_vals_list.tolist()))
+            # logging.info('actual (previous) d/dx: {:.4f}\n\npredicted (previous) d/dx: {:.4f}\npredicted (next) d/dx: {:.4f}'.format(
+            #    actual_last_ddx, last_ddx, next_ddx))
             logging.info(
-                'n-1: ${:.4f} (actual)\nn: ${:.4f} (actual)\n\nn-1: ${:.4f} (predicted)\nn: ${:.4f} (predicted)\nn+1: ${:.4f} (predicted)'.format(*raw_vals_list.tolist()))
-            logging.info('actual (previous) d/dx: {:.4f}\n\npredicted (previous) d/dx: {:.4f}\npredicted (next) d/dx: {:.4f}'.format(
-                actual_last_ddx, last_ddx, next_ddx))
-            logging.info(
-                'predicted action:{} (reason: {})'.format(decision, reason))
+                'predicted action: {} (reason: {})'.format(decision, reason))
             #print(SPACE_BARS, '\n')
         except IndexError:
             logging.warning(

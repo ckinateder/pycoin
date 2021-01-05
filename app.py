@@ -24,7 +24,9 @@ __email__ = 'calvinkinateder@gmail.com'
 BUILD = '0.9.5'
 
 app = Flask(__name__)
-
+app.logger.disabled = True
+log = logging.getLogger('werkzeug')
+log.disabled = True
 # headers for csv data
 
 headers = {
@@ -32,11 +34,7 @@ headers = {
     'price': 'askprice'  # the column used for price
 }
 
-pair = ['tsla', 'usd']
-
-# create threader
-threader = ThreadedTrader(
-    pair=pair, headers=headers, retrain_every=1, fees=False)
+pair = ['aapl', 'usd']
 
 
 def getFooter():
@@ -155,4 +153,10 @@ if __name__ == '__main__':
     # serverThread.setDaemon(True)
     serverThread.start()
     logging.info('Sent webserver to background')
+    # create threader
+    if len(sys.argv) == 2:
+        pair = pair[sys.argv[1], 'usd']
+
+    threader = ThreadedTrader(
+        pair=pair, headers=headers, retrain_every=1, fees=False, conservative=True)
     threader.run()
