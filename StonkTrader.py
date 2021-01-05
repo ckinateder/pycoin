@@ -19,7 +19,7 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class ThreadedTrader:
-    def __init__(self, pair, headers, retrain_every, fees=False, conservative=True):
+    def __init__(self, pair, headers, retrain_every, fees=False, conservative=True, wait=10):
         self.headers = headers
         self.pair = [pair[0].upper(), pair[1]]  # [{ticker}, 'usd']
         self.filename = self.getFilename(pair)
@@ -31,16 +31,18 @@ class ThreadedTrader:
                                                        batch_size=1,
                                                        pair=pair,
                                                        ext='alpaca',
-                                                       cutpoint=1800,  # 300?
+                                                       cutpoint=300,  # 300?
                                                        important_headers=headers,
                                                        verbose=2)
         self.current_df = self.predictor.createFrame()
         self.smallest_size = 20
-        self.total_net = 0
-        self.time_delay = 2
+        self.total_net = self.trader.getNetPct()
+        self.time_delay = wait
         self.start_time = datetime.now()
+
+        self.initial_wait = 2  # mins
         self.conservative = conservative
-        self.predicting = True  # for pausing
+        self.predicting = False  # for pausing
         self.last_time_trained = 0
         self.fiat = self.trader.getCash()
         self.lowest_sell_threshold = self.fiat
@@ -105,8 +107,7 @@ class ThreadedTrader:
         '''
         # RETRAIN
         while True:
-            if self.predicting:
-
+            try:
                 if ((time.time() - self.last_time_trained) >= self.retrain_every or self.last_time_trained == 0) and len(self.current_df) >= self.smallest_size:
                     self.last_time_trained = time.time()
                     logging.info('Retraining model ...\n')
@@ -117,6 +118,8 @@ class ThreadedTrader:
                         datetime.utcfromtimestamp(self.last_time_trained))))
                 else:
                     logging.info('Model not trained yet ...')
+            except:
+                logging.warning('Could not be trained')
 
             time.sleep(10)
 
@@ -211,8 +214,8 @@ class ThreadedTrader:
                             'decision != action_taken - reasons unknown atm')
 
                     # end transaction
-                    self.total_net = (((self.fiat/self.initial_investment) +
-                                       ((self.stonk*current_price)/self.initial_investment))*100)-100
+                    self.total_net = self.trader.getNetPct()
+
                     print('+ Total net: {:.3f}%\n   (since {})\n'.format(
                         self.total_net, self.start_time.replace(microsecond=0)))
                     logging.info('Current Standings:\n  + Total net: {:.5f}%\n  + Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n  + Open trades? {}\n   ({})'.format(self.total_net,
@@ -238,11 +241,25 @@ class ThreadedTrader:
                 logging.warning(
                     'Model not found - {} ...'.format(e))
 
+            if time.time() - self.start_time.timestamp() >= 60*self.initial_wait:
+                self.predicting = True
+            if self.predicting == False:
+                time.sleep(self.time_delay)
+
     def run(self):
         '''
         Main function.
         '''
         try:
+            clock = self.trader.api.get_clock()
+            if clock.is_open:
+                print('Market open!')
+            else:
+                time_to_open = clock.next_open - clock.timestamp
+                logging.warning(
+                    'Market closed ... sleeping for {} until open'.format(time_to_open))
+                time.sleep(time_to_open.total_seconds())
+
             logging.info('Initial training ...')
             logging.info('Creating savingThread ...')
             self.savingThread = threading.Thread(

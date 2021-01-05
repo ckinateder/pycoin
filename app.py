@@ -16,7 +16,7 @@ print('Imported modules...')
 detail = 'logs/detail/' + \
     datetime.now().strftime("%m-%d-%Y_%H-%M-%S")+'.log'
 logging.basicConfig(format='%(asctime)s: %(message)s',
-                    filename=detail, level=logging.DEBUG)
+                    filename=detail, level=logging.INFO)
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
@@ -35,6 +35,7 @@ headers = {
 }
 
 pair = ['aapl', 'usd']
+wait = 10  # s
 
 
 def getFooter():
@@ -154,9 +155,10 @@ if __name__ == '__main__':
     serverThread.start()
     logging.info('Sent webserver to background')
     # create threader
-    if len(sys.argv) == 2:
-        pair = pair[sys.argv[1], 'usd']
-
+    # format: $ py3 app.py tsla 10
+    if len(sys.argv) == 3:
+        pair = [sys.argv[1], 'usd']
+        wait = int(sys.argv[2])
     threader = ThreadedTrader(
-        pair=pair, headers=headers, retrain_every=1, fees=False, conservative=True)
+        pair=pair, headers=headers, retrain_every=1, fees=False, conservative=True, wait=wait)
     threader.run()

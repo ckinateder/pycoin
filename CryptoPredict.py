@@ -90,7 +90,7 @@ class CryptoPredictor:
             start = 0
         df = df.iloc[start:]
         logging.info(
-            'Dataset loaded into frame in {:.2f}s'.format(time.time()-begin))
+            'Dataset loaded into frame in {:.2f}s (size = {})'.format(time.time()-begin, len(df.index)))
         return df
 
     # series must be an array of series

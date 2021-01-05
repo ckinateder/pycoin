@@ -106,6 +106,14 @@ class AlpacaTrader:
     def listPositions(self):
         return self.api.list_positions()
 
+    def getNetPct(self):
+        try:
+            net = float(self.api.get_portfolio_history(
+                period='1D', timeframe='1Min').profit_loss_pct[0])
+            return net
+        except:
+            return 0
+
     def test(self):
         print(self.saveTickerPair('TSLA'))
 
@@ -118,4 +126,5 @@ if __name__ == '__main__':
     tester = AlpacaTrader(paper=True)
     print(tester.getCash())
     print(tester.getPosition('TSLA'))
-    print(tester.listPositions())
+    print(tester.api.get_portfolio_history(
+        period='1D'))
