@@ -23,28 +23,27 @@
             <a href=# id=quit_btn><button class='btn'>Quit</button></a>
         </form>
     </div>
-    <div id="panels-both">
-        <div id="tables-and-log">
-            <div id="dash">
-                <h1>Current Stats</h1>
-                <div id="refresh1">
-                    <div id="latest_div">
-                        {{ latest|safe }}
-                    </div>
-                </div>
-            </div>
-            <div id="log_container">
-                <h1>Log</h1>
-                <div id="refresh2">
-                    <div id="log_div">
-                        {{ log|safe }}
-                    </div>
-                </div>
+    <div id="dash">
+        <h1>Current Stats</h1>
+        <div id="refresh1">
+            <div id="latest_div">
+                {{ latest|safe }}
             </div>
         </div>
+    </div>
+    <div id="data_container" style="padding: 20px;">
+        <h1>Latest Data</h1>
         <div id="data">
             <div id="head-of-data">
                 {{ head|safe }}
+            </div>
+        </div>
+    </div>
+    <div id="log_container">
+        <h1>Log</h1>
+        <div id="refresh2">
+            <div id="log_div">
+                {{ log|safe }}
             </div>
         </div>
     </div>

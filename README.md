@@ -1,14 +1,10 @@
 # pycoin
 
-PyCoin is an automated cryptocurrency trading application. Right now it is just a pet project, but will hopefully become more than that soon. It consists of two parts – intermarket arbitrage, and intramarket arbitrage. Both are very much a work in progress.
-
-## Intramarket
-
-An automated speed trading algorithm for cryprocurrency using LSTM. Cryptocurrency was chosen over the stock market due to the limits on trading frequency with less than $25K in your portfolio. The goal of this algorithm is to predict a gain or loss on bitcoin within the next second and then make a trade based on that data.
+PyCoin is an automated stock trading application that uses the alpaca trading api. It takes in data over 10 second intervals and uses an LSTM model (retrained every 15 minutes) to make a decision on what the predicted next price will be, and makes takes an action in that second depending on the decison outputted by the model.
 
 ### Trading Logic
 
-The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `1`, epochs between `10` and `15`, and units around `256`. I also found that the size of the rolling dataset works best between `1800` to `2400` datapoints. According to graph error, it looks as though the model needs to be retrained every half an hour to an hour at minimum. As far as structure goes – the main class is `CryptoTrader`. It incorporates `CrytoPredictor` and `KrakenTrader` and brings them together in one class. This is then referenced by `app.py` and put together with the web server for a fully functioned release. All current data can be viewed on the webserver at `http://localhost:5000`.
+The trading logic used for this is based on the derivative of the predictions graph. Currently the algorithm is able to correctly predict whether the crypto price is increasing or decreasing no less than 80% of the time. I have found the model to perform best with the lookback set to `1`, epochs between `10` and `15`, and units around `256`. I also found that the size of the rolling dataset works best between `1800` to `2400` datapoints. According to graph error, it looks as though the model needs to be retrained every half an hour to an hour at minimum. As far as structure goes – the main class is `StonkTrader`. It incorporates `CrytoPredictor` and `AlpacaTrader` and brings them together in one class. This is then referenced by `app.py` and put together with the web server for a fully functioned release. All current data can be viewed on the webserver at `http://localhost:5000`. Currently, the application is in the process of being ported to use the Alpaca stock trading api. Although the algorithm I designed works well, and the predictions are more than accurate, the fees associated with trading crypto nullify the gains. Since there are no fees for trading stocks, I'm switching to that market.
 
 Endpoint: `app.py`
 

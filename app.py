@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from flask import Flask, request, render_template
 from datetime import datetime
-from CryptoTrader import ThreadedTrader
+from StonkTrader import ThreadedTrader
 import tablib
 import threading
 import time
@@ -21,12 +21,12 @@ app = Flask(__name__)
 # headers for csv data
 
 headers = {
-    'timestamp': 'unix',
-    'price': 'a'  # the column used for price
+    'timestamp': 'timestamp',
+    'price': 'askprice'  # the column used for price
 }
 
-pair = ['ltc', 'usd']
-invest = 3000
+pair = ['tsla', 'usd']
+invest = 2000
 
 # create threader
 threader = ThreadedTrader(
@@ -49,10 +49,8 @@ def getInfo():
         Investing ${:.2f}<br>\
             Predicting: {}<br>\
             Conservative: {}<br>\
-            Fees: {}%<br>\
-            Fees?: {}<br>\
             Last time trained: <br>\
-            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, threader.fee*100, threader.fees_applied, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
+            {}'.format(' - '.join(pair).upper(), invest, threader.predicting, threader.conservative, datetime.fromtimestamp(threader.last_time_trained).strftime("%m-%d-%Y %H:%M:%S"))
 
 # routes
 
@@ -83,7 +81,7 @@ def toggle_predicting_btn():
 @app.route('/toggle_conservative_btn')
 def toggle_conservative_btn():
     '''
-    Toggle conservattive on and off.
+    Toggle conservative on and off.
     '''
     if threader.conservative:
         threader.conservative = False
@@ -121,14 +119,15 @@ def table():
         top_row = dataset.to_html(table_id='latest', index=False)
     # get pure csv
     head = pd.read_csv(threader.getFilename(threader.pair))
-    if len(head.values) >= 20:
-        head_html = head.iloc[-20:].iloc[::-1].to_html(table_id='csv')
+    show = 2
+    if len(head.values) >= show:
+        head_html = head.iloc[-show:].iloc[::-1].to_html(table_id='csv')
     else:
         head_html = head.iloc[-(len(head_html)) -
                               1:].iloc[::-1].to_html(table_id='csv')
 
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', footer=getFooter(), build=BUILD, latest=top_row, log=log, info=getInfo(), head=head_html, title='pycoin {} - {}%'.format(BUILD, round(threader.total_net, 3)))
+    return render_template('index.html', footer=getFooter(), build='0.9.5', latest=top_row, log=log, info=getInfo(), head=head_html)
 
 
 def runServer():
