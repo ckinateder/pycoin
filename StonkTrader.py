@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 import CryptoPredict
 import time
 import csv
-import kraken
 import threading
 import psutil
 import os
@@ -45,8 +44,9 @@ class ThreadedTrader:
         self.start_time = datetime.now()
         self.log_path = 'logs/' + \
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
-        logging.basicConfig(filename='logs/detail/'+self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.log',
-                            encoding='utf-8', level=logging.DEBUG)
+        detail = 'logs/detail/' + \
+            self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.log'
+        logging.basicConfig(filename=detail, level=logging.DEBUG)
         self.conservative = True
         self.predicting = True  # for pausing
         self.last_time_trained = 0

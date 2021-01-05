@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 from flask import Flask, request, render_template
-from datetime import datetime
+from datetime import datetime, time
 from StonkTrader import ThreadedTrader
 import tablib
 import threading
-import time
+import time as t
 import os
 import platform
-import time
 import pandas as pd
 import sys
+
+print('Imported modules...')
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
@@ -61,7 +62,7 @@ def restart_btn():
     Force retrain the model.
     '''
     print('\n* FORCE RETRAIN\n')
-    threader.last_time_trained = time.time()
+    threader.last_time_trained = t.time()
     threader.predictor.retrainModel(threader.current_df)
     return ('Done (/restart_btn)')
 
@@ -127,17 +128,29 @@ def table():
                               1:].iloc[::-1].to_html(table_id='csv')
 
     log = dataset.to_html(table_id='log', index=False)
-    return render_template('index.html', footer=getFooter(), build='0.9.5', latest=top_row, log=log, info=getInfo(), head=head_html)
+    return render_template('index.html', footer=getFooter(), build=BUILD, latest=top_row, log=log, info=getInfo(), head=head_html)
 
 
 def runServer():
     app.run(host='0.0.0.0', threaded=True)
 
 
+def is_time_between(begin_time, end_time, check_time=None):
+    # If check time is not given, default to current UTC time
+    check_time = check_time or datetime.utcnow().time()
+    if begin_time < end_time:
+        return check_time >= begin_time and check_time <= end_time
+    else:  # crosses midnight
+        return check_time >= begin_time or check_time <= end_time
+
+
 if __name__ == '__main__':
     # run server in background
-    serverThread = threading.Thread(target=runServer, name='server')
-    # serverThread.setDaemon(True)
-    serverThread.start()
-    print('Sent webserver to background \n')
-    threader.run()
+    if is_time_between(time(9, 30), time(16, 00)):
+        serverThread = threading.Thread(target=runServer, name='server')
+        # serverThread.setDaemon(True)
+        serverThread.start()
+        print('* Sent webserver to background \n')
+        threader.run()
+    else:
+        print('STOCK MARKET CLOSED - RUN BETWEEN 9:30am AND 4:00pm')
