@@ -155,6 +155,7 @@ class ThreadedTrader:
                         dollar_value = self.stonk*current_price  # in usd
 
                         if decision == 'buy' and self.fiat >= stonk_value*current_price:
+                            action_taken = 'buy'
                             self.stonk = self.stonk + stonk_value
                             self.fiat = self.fiat - self.stonk * \
                                 current_price
@@ -162,6 +163,7 @@ class ThreadedTrader:
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                     self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
                         elif decision == 'sell' and self.stonk >= stonk_value:
+                            action_taken = 'sell'
                             if self.conservative:
                                 # so no loss from selling
                                 if dollar_value >= self.lowest_sell_threshold:
@@ -178,6 +180,7 @@ class ThreadedTrader:
                                     '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
                                         self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
                         else:
+                            action_taken = 'hold'
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
                                     self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value))
@@ -190,7 +193,7 @@ class ThreadedTrader:
                         # end transaction
 
                         #  save to log
-                        row = [datetime.now().replace(microsecond=0), decision, current_price, round(self.fiat, 2),
+                        row = [datetime.now().replace(microsecond=0), action_taken, current_price, round(self.fiat, 2),
                                round(self.stonk, 8), round(self.stonk*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
                         self.logToCSV(row)
                         #  end

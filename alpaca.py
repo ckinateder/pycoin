@@ -62,7 +62,7 @@ class AlpacaTrader:
         self.cleanup(filename, 4096)
         return quote
 
-    def submitOrder(self, ticker, qty, take_price, stop_loss):
+    def submitOrder(self, ticker, qty):
         '''
         Submit a market order.
         '''
@@ -72,14 +72,7 @@ class AlpacaTrader:
             type='market',
             qty=qty,
             time_in_force='day',
-            order_class='bracket',
-            take_profit=dict(
-                limit_price=str(take_price),
-            ),
-            stop_loss=dict(
-                stop_price=str(stop_loss),
-                limit_price=str(stop_loss),
-            )
+            order_class='bracket'
         )
         return self.api.list_orders()
 
