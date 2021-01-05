@@ -14,7 +14,7 @@ import sys
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
 
-BUILD = '0.9.4'
+BUILD = '0.9.5'
 
 app = Flask(__name__)
 

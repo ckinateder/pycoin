@@ -12,6 +12,7 @@ import sys
 import json
 import alpaca
 from guppy import hpy
+import logging
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
@@ -44,6 +45,8 @@ class ThreadedTrader:
         self.start_time = datetime.now()
         self.log_path = 'logs/' + \
             self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
+        logging.basicConfig(filename='logs/detail/'+self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.log',
+                            encoding='utf-8', level=logging.DEBUG)
         self.conservative = True
         self.predicting = True  # for pausing
         self.last_time_trained = 0
