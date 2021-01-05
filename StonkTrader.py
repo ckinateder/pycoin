@@ -27,7 +27,7 @@ class ThreadedTrader:
         self.pair = pair  # [{ticker}, 'usd']
         self.filename = self.getFilename(pair)
         self.retrain_every = retrain_every*60
-        self.a_trader = alpaca.AlpacaTrader()
+        self.trader = alpaca.AlpacaTrader()
         self.predictor = CryptoPredict.CryptoPredictor(lookback=1,
                                                        epochs=13,
                                                        units=256,
@@ -136,11 +136,11 @@ class ThreadedTrader:
         '''
         while True:
             try:
-                self.a_trader.saveTickerPair(self.pair)
+                self.trader.saveTickerPair(self.pair)
             except:
                 print('api call failed...trying again in 5')
                 time.sleep(5)
-                self.a_trader.saveTickerPair(self.pair)
+                self.trader.saveTickerPair(self.pair)
 
             self.current_df = self.predictor.createFrame()  # re update frame
 
@@ -157,40 +157,70 @@ class ThreadedTrader:
                         stonk_value = self.fiat/current_price  # in crypto
                         dollar_value = self.stonk*current_price  # in usd
 
-                        if decision == 'buy' and self.fiat >= stonk_value*current_price:
-                            action_taken = 'buy'
-                            self.stonk = self.stonk + stonk_value
-                            self.fiat = self.fiat - self.stonk * \
-                                current_price
+                        action_taken = 'hold'
+
+                        if decision == 'buy':
+                            if not self.trader.anyOpen(self.pair[0]):
+                                self.trader.submitOrder(
+                                    self.pair[0], 'buy', self.fiat/current_price)
+                                # change this\/?
+                                self.stonk = self.stonk + stonk_value
+                                self.fiat = self.fiat - self.stonk * \
+                                    current_price
+                                # change this/\?
+                                action_taken = 'buy'
+                                logging.info('Bought')
+                            else:
+                                logging.warning('Open orders - trade canceled')
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
                                     self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
                         elif decision == 'sell' and self.stonk >= stonk_value:
-                            action_taken = 'sell'
                             if self.conservative:
                                 # so no loss from selling
                                 if dollar_value >= self.lowest_sell_threshold:
+                                    if not self.trader.anyOpen(self.pair[0]):
+                                        self.trader.submitOrder(
+                                            self.pair[0], 'sell', self.stonk)
+                                        # change this\/?
+                                        self.fiat = self.fiat + \
+                                            dollar_value
+                                        self.stonk = self.stonk - self.fiat/current_price
+                                        # change this/\?
+                                        action_taken = 'sell'
+                                        logging.info('Sold')
+                                    else:
+                                        logging.warning(
+                                            'Open orders - trade canceled')
+                            else:  # just do it
+                                if not self.trader.anyOpen(self.pair[0]):
+                                    self.trader.submitOrder(
+                                        self.pair[0], 'sell', self.stonk)
+                                    # change this\/?
                                     self.fiat = self.fiat + \
                                         dollar_value
                                     self.stonk = self.stonk - self.fiat/current_price
-                                    print(
-                                        '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                                            self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
-                            else:  # just do it
-                                self.fiat = self.fiat + dollar_value
-                                self.stonk = self.stonk - self.fiat/current_price
-                                print(
-                                    '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
-                                        self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
+                                    action_taken = 'sell'
+                                    logging.info('Sold')
+                                    # change this/\?
+                                else:
+                                    logging.warning(
+                                        'Open orders - trade canceled')
+                            print(
+                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                                    self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
                         else:
-                            action_taken = 'hold'
                             print(
                                 '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
                                     self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value))
+                        if decision != action_taken:
+                            logging.warning(
+                                'decision != action_taken - reasons unknown atm')
 
                         self.total_net = (((self.fiat/self.initial_investment) +
                                            ((self.stonk*current_price)/self.initial_investment))*100)-100
-
+                        logging.info(
+                            'Total net: {:.5f}%'.format(self.total_net))
                         print(
                             '+ Total net: {:.3f}%\n   (since {})\n'.format(self.total_net, self.start_time.replace(microsecond=0)))
                         # end transaction

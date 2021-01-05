@@ -62,19 +62,34 @@ class AlpacaTrader:
         self.cleanup(filename, 4096)
         return quote
 
-    def submitOrder(self, ticker, qty):
+    def submitOrder(self, ticker, side, qty):
         '''
         Submit a market order.
         '''
         self.api.submit_order(
             symbol=ticker,
-            side='buy',
+            side=side,
             type='market',
             qty=qty,
             time_in_force='day',
             order_class='bracket'
         )
         return self.api.list_orders()
+
+    def anyOpen(self, ticker):
+        '''
+        Checks to see if any orders are still open.
+        '''
+        listed = self.api.list_orders(
+            status='open',
+        )
+        if len(listed) != 0:
+            return True
+        else:
+            return False
+
+    def getAccount(self):
+        return self.api.get_account()
 
     def test(self):
         print(self.saveTickerPair('TSLA'))

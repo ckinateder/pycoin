@@ -1,6 +1,6 @@
 # pycoin
 
-PyCoin is an automated stock trading application that uses the alpaca trading api. It takes in data over 10 second intervals and uses an LSTM model (retrained every 15 minutes) to make a decision on what the predicted next price will be, and makes takes an action in that second depending on the decison outputted by the model.
+PyCoin is an automated stock trading application that uses the alpaca trading api. It takes in data over 10 second intervals and uses an LSTM model (retrained every 15 minutes) to make a decision on what the predicted next price will be, and makes takes an action in that second depending on the decision outputted by the model.
 
 ### Trading Logic
 
