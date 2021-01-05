@@ -1,5 +1,6 @@
 import alpaca_trade_api as alpaca
 import pandas
+import datetime
 import os
 import json
 import logging
@@ -108,8 +109,11 @@ class AlpacaTrader:
 
     def getNetPct(self):
         try:
+            #initial = datetime.datetime()
+            index = int((datetime.datetime.now().timestamp() - datetime.datetime.combine(
+                datetime.datetime.today(), datetime.time(9, 30)).timestamp())/60)  # minutes since open
             net = float(self.api.get_portfolio_history(
-                period='1D', timeframe='1Min').profit_loss_pct[0])
+                period='1D', timeframe='1Min').profit_loss_pct[index])
             return net
         except:
             return 0
@@ -126,5 +130,4 @@ if __name__ == '__main__':
     tester = AlpacaTrader(paper=True)
     print(tester.getCash())
     print(tester.getPosition('TSLA'))
-    print(tester.api.get_portfolio_history(
-        period='1D'))
+    print(tester.getNetPct())
