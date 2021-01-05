@@ -10,6 +10,7 @@ import sklearn
 import sys
 import json
 import alpaca
+import math
 from guppy import hpy
 import logging
 
@@ -18,13 +19,9 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class ThreadedTrader:
-    def __init__(self, pair, headers, retrain_every, initial_investment, fees=False):
+    def __init__(self, pair, headers, retrain_every, fees=False):
         self.headers = headers
-        self.fiat = initial_investment
-        self.initial_investment = initial_investment
-        self.lowest_sell_threshold = initial_investment
-        self.stonk = 0
-        self.pair = pair  # [{ticker}, 'usd']
+        self.pair = [pair[0].upper(), pair[1]]  # [{ticker}, 'usd']
         self.filename = self.getFilename(pair)
         self.retrain_every = retrain_every*60
         self.trader = alpaca.AlpacaTrader()
@@ -42,24 +39,19 @@ class ThreadedTrader:
         self.total_net = 0
         self.time_delay = 8
         self.start_time = datetime.now()
-        self.log_path = 'logs/' + \
-            self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.csv'
-        detail = 'logs/detail/' + \
-            self.start_time.strftime("%m-%d-%Y_%H-%M-%S")+'.log'
-        logging.basicConfig(filename=detail, level=logging.DEBUG)
         self.conservative = True
         self.predicting = True  # for pausing
         self.last_time_trained = 0
+        self.fiat = self.trader.getCash()
+        self.lowest_sell_threshold = self.fiat
+        self.initial_investment = self.fiat
+        self.stonk = self.trader.getPosition(pair[0])
 
         # reset file
         headers = ['unix', 'action', 'price ({})'.format(self.pair[0]), 'balance ({})'.format(
             self.pair[1]), 'balance ({})'.format(self.pair[0]), 'valuation ({})'.format(self.pair[1]), 'total net (%)', 'uptime', 'dataset size']
 
         with open('logs/current_log.csv', 'w+') as filename:
-            writer = csv.writer(filename)
-            writer.writerow(headers)
-
-        with open(self.log_path, 'w+') as filename:
             writer = csv.writer(filename)
             writer.writerow(headers)
 
@@ -74,10 +66,6 @@ class ThreadedTrader:
         Logs diagnostics to file.
         '''
         with open('logs/current_log.csv', 'a') as filename:
-            writer = csv.writer(filename)
-            writer.writerow(row)
-
-        with open(self.log_path, 'a') as filename:
             writer = csv.writer(filename)
             writer.writerow(row)
 
@@ -102,7 +90,7 @@ class ThreadedTrader:
         '''
         process = psutil.Process(os.getpid())
         # in bytes
-        print(
+        logging.info(
             '* Using {:.2f} MB of memory\n'.format(process.memory_info().rss/(1024*1024)))
         if heapy:
             h = hpy()
@@ -118,15 +106,15 @@ class ThreadedTrader:
 
                 if ((time.time() - self.last_time_trained) >= self.retrain_every or self.last_time_trained == 0) and len(self.current_df) >= self.smallest_size:
                     self.last_time_trained = time.time()
-                    print('* Retraining model ...\n')
+                    logging.info('Retraining model ...\n')
                     self.predictor.retrainModel(self.current_df)
 
                 if self.last_time_trained != 0:
-                    print('Last model trained at', self.utc_to_local(
-                        datetime.utcfromtimestamp(self.last_time_trained)))
+                    logging.info('Last model trained at {}'.format(self.utc_to_local(
+                        datetime.utcfromtimestamp(self.last_time_trained))))
                 else:
-                    print('Model not trained yet ...')
-                print('')
+                    logging.info('Model not trained yet ...')
+
             time.sleep(10)
 
     def saveLoop(self):
@@ -138,7 +126,7 @@ class ThreadedTrader:
             try:
                 self.trader.saveTickerPair(self.pair)
             except:
-                print('api call failed...trying again in 5')
+                logging.warning('api call failed...trying again in 5')
                 time.sleep(5)
                 self.trader.saveTickerPair(self.pair)
 
@@ -151,7 +139,9 @@ class ThreadedTrader:
                         # only do this once it can verify last 2400 CONTINUOUS DATA
                         decision = self.predictor.decideAction(
                             self.current_df, current_model)
-
+                        # update current standings agaim
+                        self.fiat = self.trader.getCash()
+                        self.stonk = self.trader.getPosition(self.pair[0])
                         # buy or sell here
                         current_price = self.current_df.iloc[-1][self.headers['price']]
                         stonk_value = self.fiat/current_price  # in crypto
@@ -162,18 +152,14 @@ class ThreadedTrader:
                         if decision == 'buy':
                             if not self.trader.anyOpen(self.pair[0]):
                                 self.trader.submitOrder(
-                                    self.pair[0], 'buy', self.fiat/current_price)
+                                    self.pair[0], 'buy', math.floor(self.fiat/current_price))
                                 # change this\/?
-                                self.stonk = self.stonk + stonk_value
-                                self.fiat = self.fiat - self.stonk * \
-                                    current_price
-                                # change this/\?
                                 action_taken = 'buy'
                                 logging.info('Bought')
                             else:
                                 logging.warning('Open orders - trade canceled')
-                            print(
-                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (bought)'.format(
+                            logging.info(
+                                '[Balance: {:.2f} {}, {:.8f} {}, (bought)]'.format(
                                     self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
                         elif decision == 'sell' and self.stonk >= stonk_value:
                             if self.conservative:
@@ -182,11 +168,6 @@ class ThreadedTrader:
                                     if not self.trader.anyOpen(self.pair[0]):
                                         self.trader.submitOrder(
                                             self.pair[0], 'sell', self.stonk)
-                                        # change this\/?
-                                        self.fiat = self.fiat + \
-                                            dollar_value
-                                        self.stonk = self.stonk - self.fiat/current_price
-                                        # change this/\?
                                         action_taken = 'sell'
                                         logging.info('Sold')
                                     else:
@@ -196,79 +177,85 @@ class ThreadedTrader:
                                 if not self.trader.anyOpen(self.pair[0]):
                                     self.trader.submitOrder(
                                         self.pair[0], 'sell', self.stonk)
-                                    # change this\/?
-                                    self.fiat = self.fiat + \
-                                        dollar_value
-                                    self.stonk = self.stonk - self.fiat/current_price
                                     action_taken = 'sell'
                                     logging.info('Sold')
                                     # change this/\?
                                 else:
                                     logging.warning(
                                         'Open orders - trade canceled')
-                            print(
-                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {}\n   (sold)'.format(
+                            logging.info(
+                                '[Balance: {:.2f} {}, {:.8f} {}, (sold)]'.format(
                                     self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
                         else:
-                            print(
-                                '+ Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n   (holding)'.format(
+                            logging.info(
+                                '[Balance: {:.2f} {}, {:.8f} {} (valued at {:.2f} USD), (holding)]'.format(
                                     self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value))
                         if decision != action_taken:
                             logging.warning(
                                 'decision != action_taken - reasons unknown atm')
 
-                        self.total_net = (((self.fiat/self.initial_investment) +
-                                           ((self.stonk*current_price)/self.initial_investment))*100)-100
-                        logging.info(
-                            'Total net: {:.5f}%'.format(self.total_net))
                         print(
                             '+ Total net: {:.3f}%\n   (since {})\n'.format(self.total_net, self.start_time.replace(microsecond=0)))
                         # end transaction
+                        self.checkMemory()
 
-                        #  save to log
-                        row = [datetime.now().replace(microsecond=0), action_taken, current_price, round(self.fiat, 2),
-                               round(self.stonk, 8), round(self.stonk*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
+                        # update current standings agaim
+                        self.fiat = self.trader.getCash()
+                        self.stonk = self.trader.getPosition(self.pair[0])
+
+                        self.total_net = (((self.fiat/self.initial_investment) +
+                                           ((self.stonk*current_price)/self.initial_investment))*100)-100
+                        logging.info('Current Standings:\n  + Total net: {:.5f}%\n  + Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n  + Open trades? {}\n   ({})'.format(self.total_net,
+                                                                                                                                                                                          self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value, self.trader.anyOpen(self.pair[0]), action_taken))
+
+                        #  save to current log
+                        row = [datetime.now().replace(microsecond=0), action_taken, current_price, round(self.fiat, 2), round(self.stonk, 8), round(
+                            self.stonk*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
                         self.logToCSV(row)
-                        #  end
                     else:
-                        print(
-                            '* Not predicting, dataset not big enough ({} < {})'.format(len(self.current_df), self.smallest_size))
+                        logging.warning(
+                            'Not predicting, dataset not big enough ({} < {})'.format(len(self.current_df), self.smallest_size))
                 else:
-                    print('* Not predicting, toggled off ... just saving.')
+                    logging.info(
+                        'Not predicting, toggled off ... just saving.')
             except sklearn.exceptions.NotFittedError as e:
-                print('* Model not fit yet - waiting til next cycle ({})'.format(e))
+                logging.warning(
+                    'Model not fit yet - waiting til next cycle ({})'.format(e))
             except UnboundLocalError as e:
-                print('* Model not fit yet - waiting til next cycle ({})'.format(e))
+                logging.warning(
+                    'Model not fit yet - waiting til next cycle ({})'.format(e))
             except FileNotFoundError as e:
-                print(
-                    '* Model not found - {} ...'.format(e))
+                logging.warning(
+                    'Model not found - {} ...'.format(e))
 
-            self.checkMemory()
-            time.sleep(self.time_delay)
+            #  end
+            time.sleep(self.time_delay)  # update current standings agaim
+            self.fiat = self.trader.getCash()
+            self.stonk = self.trader.getPosition(self.pair[0])
+            logging.info('After time delay ({}) - [Balance: {:.2f} {}, {:.8f} {}]'.format(
+                self.time_delay, self.fiat, self.pair[1], self.stonk, self.pair[0]))
 
     def run(self):
         '''
         Main function.
         '''
         try:
-            print('* Initial training ...')
-            # self.predictor.retrainModel(self.current_df) ## initialize with retrained model
-
-            print('* Creating savingThread ...')
+            logging.info('Initial training ...')
+            logging.info('Creating savingThread ...')
             self.savingThread = threading.Thread(
                 target=self.saveLoop, name='saver')
             self.savingThread.setDaemon(True)
-            print('* Starting savingThread ...')
+            logging.info('Starting savingThread ...')
             self.savingThread.start()
-            print('* Creating retrainingThread ...')
+            logging.info('Creating retrainingThread ...')
             self.retrainingThread = threading.Thread(
                 target=self.checkRetrainLoop, name='retrainer')
             self.retrainingThread.setDaemon(True)
-            print('* Waiting 10 seconds ...\n')
+            logging.info('Waiting 10 seconds ...\n')
             time.sleep(10)
-            print('* Starting retrainingThread ...\n')
+            logging.info('Starting retrainingThread ...\n')
             self.retrainingThread.start()
-            print('\nGood to go!\n')
+            logging.info('\nGood to go!\n')
 
         except (KeyboardInterrupt, SystemExit):
-            print('* Cancelled')
+            logging.error('Cancelled')

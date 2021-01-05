@@ -3,6 +3,7 @@ from flask import Flask, request, render_template
 from datetime import datetime, time
 from StonkTrader import ThreadedTrader
 import tablib
+import logging
 import threading
 import time as t
 import os
@@ -11,6 +12,11 @@ import pandas as pd
 import sys
 
 print('Imported modules...')
+
+detail = 'logs/detail/' + \
+    datetime.now().strftime("%m-%d-%Y_%H-%M-%S")+'.log'
+logging.basicConfig(format='%(asctime)s: %(message)s',
+                    filename=detail, level=logging.DEBUG)
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
@@ -27,11 +33,10 @@ headers = {
 }
 
 pair = ['tsla', 'usd']
-invest = 2000
 
 # create threader
 threader = ThreadedTrader(
-    pair=pair, headers=headers, retrain_every=10, initial_investment=invest, fees=False)
+    pair=pair, headers=headers, retrain_every=1, fees=False)
 
 
 def getFooter():
@@ -61,7 +66,7 @@ def restart_btn():
     '''
     Force retrain the model.
     '''
-    print('\n* FORCE RETRAIN\n')
+    print('\nFORCE RETRAIN\n')
     threader.last_time_trained = t.time()
     threader.predictor.retrainModel(threader.current_df)
     return ('Done (/restart_btn)')
@@ -146,11 +151,8 @@ def is_time_between(begin_time, end_time, check_time=None):
 
 if __name__ == '__main__':
     # run server in background
-    if is_time_between(time(9, 30), time(16, 00)):
-        serverThread = threading.Thread(target=runServer, name='server')
-        # serverThread.setDaemon(True)
-        serverThread.start()
-        print('* Sent webserver to background \n')
-        threader.run()
-    else:
-        print('STOCK MARKET CLOSED - RUN BETWEEN 9:30am AND 4:00pm')
+    serverThread = threading.Thread(target=runServer, name='server')
+    # serverThread.setDaemon(True)
+    serverThread.start()
+    logging.info('Sent webserver to background')
+    threader.run()

@@ -2,6 +2,8 @@ import alpaca_trade_api as alpaca
 import pandas
 import os
 import json
+import logging
+import requests
 
 __author__ = 'Calvin Kinateder'
 __email__ = 'calvinkinateder@gmail.com'
@@ -11,9 +13,11 @@ class AlpacaTrader:
     def __init__(self, paper=True):
         api_key = open('keys/alpaca_public').read().strip()
         api_secret = open('keys/alpaca_private').read().strip()
-        base_url = 'https://paper-api.alpaca.markets'
+        base_url = 'https://api.alpaca.markets'
         if paper:
-            base_url = 'https://api.alpaca.markets'
+            api_key = open('keys/alpaca_paper_public').read().strip()
+            api_secret = open('keys/alpaca_paper_private').read().strip()
+            base_url = 'https://paper-api.alpaca.markets'
         # or use ENV Vars shown below
         self.api = alpaca.REST(api_key, api_secret,
                                base_url=base_url, api_version='v2')
@@ -66,13 +70,15 @@ class AlpacaTrader:
         '''
         Submit a market order.
         '''
+        if qty == 0:
+            logging.warning('Passed qty of 0 - won\'t trade')
+            return False
         self.api.submit_order(
             symbol=ticker,
             side=side,
             type='market',
             qty=qty,
             time_in_force='day',
-            order_class='bracket'
         )
         return self.api.list_orders()
 
@@ -88,8 +94,17 @@ class AlpacaTrader:
         else:
             return False
 
-    def getAccount(self):
-        return self.api.get_account()
+    def getCash(self):
+        return float(self.api.get_account().cash)
+
+    def getPosition(self, ticker):
+        try:
+            return float(self.api.get_position(ticker).qty)
+        except:
+            return 0
+
+    def listPositions(self):
+        return self.api.list_positions()
 
     def test(self):
         print(self.saveTickerPair('TSLA'))
@@ -101,4 +116,6 @@ if __name__ == '__main__':
         'price': 'askprice'  # the column used for price
     }
     tester = AlpacaTrader(paper=True)
-    tester.test()
+    print(tester.getCash())
+    print(tester.getPosition('TSLA'))
+    print(tester.listPositions())

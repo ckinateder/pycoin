@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 import sys
+import logging
 import os
 # setting figure size
 
@@ -64,8 +65,8 @@ class CryptoPredictor:
         try:
             df = pd.read_csv(filename)
         except FileNotFoundError:
-            print('File \''+filename +
-                  '\' not found - initializing df to empty frame ...')
+            logging.warning('File \''+filename +
+                            '\' not found - initializing df to empty frame ...')
             df = pd.DataFrame(
                 columns=[self.important_headers['timestamp'], self.important_headers['price']])
         # setting index as date
@@ -84,13 +85,12 @@ class CryptoPredictor:
         if (len(df.index)-self.cutpoint) >= 0:
             start = (len(df.index)-self.cutpoint)
         else:
-            print('\n'+(WARN_BARS))
-            print('* WARNING: DATASET LENGTH < {} (actual = {})\n* MODEL PERFORMANCE WILL BE SUBOPTIMAL'.format(
+            logging.warning('* WARNING: DATASET LENGTH < {} (actual = {})\n* MODEL PERFORMANCE WILL BE SUBOPTIMAL'.format(
                 self.cutpoint, len(df.index)))
-            print((WARN_BARS)+'\n')
             start = 0
         df = df.iloc[start:]
-        print('Dataset loaded into frame in {:.2f}s'.format(time.time()-begin))
+        logging.info(
+            'Dataset loaded into frame in {:.2f}s'.format(time.time()-begin))
         return df
 
     # series must be an array of series
@@ -111,7 +111,7 @@ class CryptoPredictor:
             plt.plot(line)
         plt.legend(legend, loc=4)
         plt.savefig('chart/'+filename)
-        print('Saved plot '+title)
+        logging.info('Saved plot '+title)
 
     def saveModel(self, model):
         '''
@@ -124,7 +124,7 @@ class CryptoPredictor:
             json_file.write(model_json)
         # serialize weights to HDF5
         model.save_weights(self.models_path+filename+'-weights.h5')
-        print('Saved model to disk')
+        logging.info('Saved model to disk')
 
     def loadModel(self):
         '''
@@ -139,7 +139,7 @@ class CryptoPredictor:
         # load weights into new model
         loaded_model.load_weights(
             self.models_path+filename+'-weights.h5')
-        print('Loaded model from disk')
+        logging.info('Loaded model from disk')
         return loaded_model
 
     def trainModel(self, df, lookback, epochs, units, batch_size):
@@ -192,20 +192,20 @@ class CryptoPredictor:
         try:
             begin = time.time()
 
-            print('Model params [ lookback =', self.lookback, ', epochs =', self.epochs,
-                  ', units =', self.units, ', batch_size =', self.batch_size, ']')
+            logging.info('Model params: [lookback={}, epochs={}, units={}, batch_size={}]'.format(
+                self.lookback, self.epochs, self.units, self.batch_size))
 
             model, new_data = self.trainModel(
                 df, self.lookback, self.epochs, self.units, self.batch_size)
             self.saveModel(model)
-            print('Model trained and saved in {:.2f}s'.format(
+            logging.info('Model trained and saved in {:.2f}s'.format(
                 time.time()-begin))
             return model
 
         except:
-            print('\n'+(WARN_BARS))
-            print('* WARNING: MODEL COULD NOT BE CREATED\n* USING BACKUP FROM FILE - THIS WILL PRODUCE ERRONEOUS RESULTS')
-            print((WARN_BARS)+'\n')
+            logging.warning(
+                'WARNING: MODEL COULD NOT BE CREATED\nUSING BACKUP FROM FILE - THIS WILL PRODUCE ERRONEOUS RESULTS')
+            # print((WARN_BARS)+'\n')
 
     def predictNextValue(self, inputs, model):  # withOUT validation*
         '''
@@ -254,7 +254,7 @@ class CryptoPredictor:
                 tally += 1
         perc_correct = (1-(tally/actual_slope.size))*100
 
-        print('Derivative correct {:.1f}%'.format(perc_correct))
+        logging.info('Derivative correct {:.1f}%'.format(perc_correct))
         return perc_correct
 
     def decideAction(self, df, model):
@@ -299,18 +299,18 @@ class CryptoPredictor:
                 decision = 'hold'
 
             # output
-            print('\n'+SPACE_BARS)
-            print('@', datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
-            print(SPACE_BARS)
-            print('n-1: ${:.4f} (actual)\nn: ${:.4f} (actual)\n\nn-1: ${:.4f} (predicted)\nn: ${:.4f} (predicted)\nn+1: ${:.4f} (predicted)'.format(*raw_vals_list.tolist()))
-            print('\nactual (previous) d/dx: {:.4f}\n\npredicted (previous) d/dx: {:.4f}\npredicted (next) d/dx: {:.4f}'.format(
+            # print('\n'+SPACE_BARS)
+            #print('@', datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+            # print(SPACE_BARS)
+            logging.info(
+                'n-1: ${:.4f} (actual)\nn: ${:.4f} (actual)\n\nn-1: ${:.4f} (predicted)\nn: ${:.4f} (predicted)\nn+1: ${:.4f} (predicted)'.format(*raw_vals_list.tolist()))
+            logging.info('\nactual (previous) d/dx: {:.4f}\n\npredicted (previous) d/dx: {:.4f}\npredicted (next) d/dx: {:.4f}'.format(
                 actual_last_ddx, last_ddx, next_ddx))
-            print('\npredicted action:', decision)
-            print(SPACE_BARS, '\n')
+            logging.info('\npredicted action:{}'.format(decision))
+            #print(SPACE_BARS, '\n')
         except IndexError:
-            print('\n'+(WARN_BARS))
-            print('* WARNING: DATASET NOT LARGE ENOUGH TO PREDICT\n* RETURNING \'hold\'')
-            print((WARN_BARS)+'\n')
+            logging.warning(
+                'WARNING: DATASET NOT LARGE ENOUGH TO PREDICT\nRETURNING \'hold\'')
             decision = 'hold'
         return decision
         # incorporate fees here too?
