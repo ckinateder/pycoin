@@ -34,7 +34,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 class CryptoPredictor:
 
-    def __init__(self, lookback=10, epochs=15, units=65, batch_size=1, ext='alpaca', important_headers={'timestamp': 'timestamp', 'price': 'askprice'}, pair=['tsla', 'usd'], cutpoint=1800, verbose=1):
+    def __init__(self, lookback=1, epochs=15, units=256, batch_size=1, ext='alpaca', important_headers={'timestamp': 'timestamp', 'price': 'askprice'}, pair=['tsla', 'usd'], cutpoint=1800, verbose=1):
         self.models_path = 'models/'
         self.ext = ext
         self.csvset = 'data/'+self.getFilename(pair)+'.csv'
@@ -71,7 +71,7 @@ class CryptoPredictor:
                 columns=[self.important_headers['timestamp'], self.important_headers['price']])
         # setting index as date
         df['date'] = pd.to_datetime(
-            df[self.important_headers['timestamp']])  # UNITS IS IMPORTANT
+            df[self.important_headers['timestamp']], unit='ms')  # UNITS IS IMPORTANT
         df.index = df.date
         # plot
         return df
@@ -110,7 +110,7 @@ class CryptoPredictor:
         for line in series:
             plt.plot(line)
         plt.legend(legend, loc=4)
-        plt.savefig('chart/'+filename)
+        plt.savefig(filename)
         logging.info('Saved plot '+title)
 
     def saveModel(self, model):
