@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import datetime
 import time
 import sys
+import alpaca
 import logging
 import os
 # setting figure size
@@ -49,6 +50,7 @@ class CryptoPredictor:
         # self.rcParams['figure.figsize'] = 20,10
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.verbose = verbose  # 0 is silent, 1 is progressbar
+        self.direct_api = alpaca.AlpacaTrader()
 
     def getFilename(self, pair):
         '''
@@ -271,7 +273,8 @@ class CryptoPredictor:
             lastv3 = df[self.important_headers['price']][len(df.index)-4]
             lastv2 = df[self.important_headers['price']][len(df.index)-3]
             lastv = df[self.important_headers['price']][len(df.index)-2]
-            currentv = df[self.important_headers['price']][len(df.index)-1]
+            #currentv = df[self.important_headers['price']][len(df.index)-1]
+            currentv = self.direct_api.getCurrentPrice(self.pair)
 
             inputs = self.conformInputs(np.array([lastv, currentv]))
             nextp = self.predictNextValue(inputs, model)[0][0]

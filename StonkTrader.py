@@ -19,7 +19,7 @@ __email__ = 'calvinkinateder@gmail.com'
 
 
 class ThreadedTrader:
-    def __init__(self, pair, headers, retrain_every, fees=False, conservative=True, wait=10):
+    def __init__(self, pair, headers, retrain_every, fees=False, conservative=True, wait=10, invest=200):
         self.headers = headers
         self.pair = [pair[0].upper(), pair[1]]  # [{ticker}, 'usd']
         self.filename = self.getFilename(pair)
@@ -31,11 +31,11 @@ class ThreadedTrader:
                                                        batch_size=1,
                                                        pair=pair,
                                                        ext='alpaca',
-                                                       cutpoint=600,  # 300?
+                                                       cutpoint=2000,  # 300?
                                                        important_headers=headers,
                                                        verbose=2)
         self.current_df = self.predictor.createFrame()
-        self.smallest_size = 20
+        self.smallest_size = 50
         self.total_net = self.trader.getNetPct()
         self.time_delay = wait
         self.start_time = datetime.now()
@@ -45,8 +45,8 @@ class ThreadedTrader:
         self.predicting = False  # for pausing
         self.last_time_trained = 0
         self.fiat = self.trader.getCash()
-        self.lowest_sell_threshold = self.fiat
-        self.initial_investment = self.fiat
+        self.lowest_sell_threshold = invest
+        self.initial_investment = invest
         self.stonk = self.trader.getPosition(pair[0])
 
         print('Starting with ${} and {} shares of {}.'.format(
@@ -146,12 +146,13 @@ class ThreadedTrader:
                         decision = self.predictor.decideAction(
                             self.current_df, current_model)
                         # update current standings agaim
-                        self.fiat = self.trader.getCash()
+                        # self.fiat = self.trader.getCash()  # make this relative to initial
+                        self.fiat = self.initial_investment
                         self.stonk = self.trader.getPosition(self.pair[0])
                         # buy or sell here
-                        current_price = self.current_df.iloc[-1][self.headers['price']]
-                        stonk_value = self.fiat/current_price  # in crypto
-                        dollar_value = self.stonk*current_price  # in usd
+                        #current_price = self.current_df.iloc[-1][self.headers['price']]
+
+                        current_price = self.trader.getCurrentPrice(self.pair)
 
                         action_taken = 'hold'
 
@@ -159,8 +160,12 @@ class ThreadedTrader:
                             if not self.trader.anyOpen(self.pair[0]):
                                 self.trader.submitOrder(
                                     self.pair[0], 'buy', math.floor(self.fiat/current_price))
-                                self.lowest_sell_threshold = math.floor(
-                                    self.fiat/current_price)*current_price  # THIS MIGHJT NOT BE GOOD
+                                current_price = self.trader.getCurrentPrice(
+                                    self.pair)
+                                self.lowest_sell_threshold = self.trader.getPosition(
+                                    self.pair[0])*(current_price+1)  # THIS MIGHJT NOT BE GOOD
+                                print('New lowest sell threshold; ',
+                                      self.lowest_sell_threshold)
                                 # change this\/?
                                 action_taken = 'buy'
                                 logging.info('Bought')
@@ -169,15 +174,20 @@ class ThreadedTrader:
                             logging.info(
                                 '[Balance: {:.2f} {}, {:.8f} {}, (bought)]'.format(
                                     self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper()))
-                        elif decision == 'sell' and self.stonk >= stonk_value:
+                        elif decision == 'sell' and self.stonk >= self.fiat/current_price:
                             if self.conservative:
                                 # so no loss from selling
-                                if dollar_value >= self.lowest_sell_threshold:  # change this line maybe
-                                    print('Dollar value:', dollar_value,
+                                current_price = self.trader.getCurrentPrice(
+                                    self.pair)
+                                if self.stonk*current_price >= self.lowest_sell_threshold:  # change this line maybe
+                                    print('Dollar value:', self.stonk*current_price,
                                           '\nLowest threshold selling:', self.lowest_sell_threshold)
                                     if not self.trader.anyOpen(self.pair[0]):
                                         self.trader.submitOrder(
                                             self.pair[0], 'sell', self.stonk)
+                                        self.stonk = self.trader.getPosition(
+                                            self.pair[0])
+                                        print('Position: ', self.stonk)
                                         action_taken = 'sell'
                                         logging.info('Sold')
                                     else:
@@ -199,7 +209,7 @@ class ThreadedTrader:
                         else:
                             logging.info(
                                 '[Balance: {:.2f} {}, {:.8f} {} (valued at {:.2f} USD), (holding)]'.format(
-                                    self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value))
+                                    self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), self.stonk*current_price))
 
                     else:
                         logging.warning(
@@ -207,9 +217,8 @@ class ThreadedTrader:
 
                     #  end
                     # update current standings again
-                    time.sleep(self.time_delay)
 
-                    self.fiat = self.trader.getCash()
+                    #self.fiat = self.trader.getCash()
                     self.stonk = self.trader.getPosition(self.pair[0])
                     if decision != action_taken:
                         logging.warning(
@@ -221,7 +230,7 @@ class ThreadedTrader:
                     print('+ Total net: {:.3f}%\n   (since {})\n'.format(
                         self.total_net, self.start_time.replace(microsecond=0)))
                     logging.info('Current Standings:\n  + Total net: {:.5f}%\n  + Balance:\n  + {:.2f} {}\n  + {:.8f} {} (valued at {:.2f} USD)\n  + Open trades? {}\n   ({})'.format(self.total_net,
-                                                                                                                                                                                      self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), dollar_value, self.trader.anyOpen(self.pair[0]), action_taken))
+                                                                                                                                                                                      self.fiat, self.pair[1].upper(), self.stonk, self.pair[0].upper(), self.stonk*current_price, self.trader.anyOpen(self.pair[0]), action_taken))
                     #  save to current log
                     row = [datetime.now().replace(microsecond=0), action_taken, current_price, round(self.fiat, 2), round(self.stonk, 8), round(
                         self.stonk*current_price+self.fiat, 2), round(self.total_net, 3), str(datetime.now()-self.start_time)[:-7], len(self.current_df)]
@@ -231,22 +240,18 @@ class ThreadedTrader:
                     logging.info(
                         'Not predicting, toggled off ... just saving.')
             except sklearn.exceptions.NotFittedError as e:
-                time.sleep(self.time_delay)
                 logging.warning(
                     'Model not fit yet - waiting til next cycle ({})'.format(e))
             except UnboundLocalError as e:
-                time.sleep(self.time_delay)
                 logging.warning(
                     'Model not fit yet - waiting til next cycle ({})'.format(e))
             except FileNotFoundError as e:
-                time.sleep(self.time_delay)
                 logging.warning(
                     'Model not found - {} ...'.format(e))
 
             if time.time() - self.start_time.timestamp() >= 60*self.initial_wait:
                 self.predicting = True
-            if self.predicting == False:
-                time.sleep(self.time_delay)
+            time.sleep(self.time_delay)
 
     def run(self):
         '''

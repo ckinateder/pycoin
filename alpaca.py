@@ -67,6 +67,11 @@ class AlpacaTrader:
         self.cleanup(filename, 10000)
         return quote
 
+    def getCurrentPrice(self, pair):
+        ticker = pair[0]
+        quote = self.api.get_last_quote(ticker.upper())
+        return float(quote.askprice)
+
     def submitOrder(self, ticker, side, qty):
         '''
         Submit a market order.
@@ -120,9 +125,6 @@ class AlpacaTrader:
         except:
             return 0
 
-    def test(self):
-        print(self.saveTickerPair('TSLA'))
-
 
 if __name__ == '__main__':
     headers = {
@@ -130,6 +132,4 @@ if __name__ == '__main__':
         'price': 'askprice'  # the column used for price
     }
     tester = AlpacaTrader(paper=True)
-    print(tester.getCash())
-    print(tester.getPosition('TSLA'))
-    print(tester.getNetPct())
+    print(tester.getCurrentPrice('TSLA'))
