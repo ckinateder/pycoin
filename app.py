@@ -160,5 +160,5 @@ if __name__ == '__main__':
         pair = [sys.argv[1], 'usd']
         wait = int(sys.argv[2])
     threader = ThreadedTrader(
-        pair=pair, headers=headers, retrain_every=1, fees=False, conservative=True, wait=wait)
+        pair=pair, headers=headers, retrain_every=5, conservative=True, wait=wait)
     threader.run()

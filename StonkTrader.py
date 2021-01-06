@@ -31,7 +31,7 @@ class ThreadedTrader:
                                                        batch_size=1,
                                                        pair=pair,
                                                        ext='alpaca',
-                                                       cutpoint=300,  # 300?
+                                                       cutpoint=600,  # 300?
                                                        important_headers=headers,
                                                        verbose=2)
         self.current_df = self.predictor.createFrame()
@@ -40,7 +40,7 @@ class ThreadedTrader:
         self.time_delay = wait
         self.start_time = datetime.now()
 
-        self.initial_wait = 2  # mins
+        self.initial_wait = .5  # mins
         self.conservative = conservative
         self.predicting = False  # for pausing
         self.last_time_trained = 0
@@ -159,8 +159,8 @@ class ThreadedTrader:
                             if not self.trader.anyOpen(self.pair[0]):
                                 self.trader.submitOrder(
                                     self.pair[0], 'buy', math.floor(self.fiat/current_price))
-                                # self.lowest_sell_threshold = math.floor(
-                                # self.fiat/current_price)*current_price  # THIS MIGHJT NOT BE GOOD
+                                self.lowest_sell_threshold = math.floor(
+                                    self.fiat/current_price)*current_price  # THIS MIGHJT NOT BE GOOD
                                 # change this\/?
                                 action_taken = 'buy'
                                 logging.info('Bought')
@@ -173,6 +173,8 @@ class ThreadedTrader:
                             if self.conservative:
                                 # so no loss from selling
                                 if dollar_value >= self.lowest_sell_threshold:  # change this line maybe
+                                    print('Dollar value:', dollar_value,
+                                          '\nLowest threshold selling:', self.lowest_sell_threshold)
                                     if not self.trader.anyOpen(self.pair[0]):
                                         self.trader.submitOrder(
                                             self.pair[0], 'sell', self.stonk)

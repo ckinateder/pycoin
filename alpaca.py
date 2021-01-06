@@ -57,7 +57,7 @@ class AlpacaTrader:
         dropped = list()
 
         quote['timestamp'] = quote['timestamp']/1000000  # convert from us to s
-        print('Recieved from \'{}\': {}'.format(ticker, quote))
+        print('Received from \'{}\': {}'.format(ticker, quote))
 
         for i in quote.values():
             dropped.append(i)
@@ -113,9 +113,9 @@ class AlpacaTrader:
             index = int((datetime.datetime.now().timestamp() - datetime.datetime.combine(
                 datetime.datetime.today(), datetime.time(9, 30)).timestamp())/60)  # minutes since open
             if index > 390:  # get last
-                index = 390
+                index = 389
             net = float(self.api.get_portfolio_history(
-                period='1D', timeframe='1Min').profit_loss_pct[index])
+                period='1D', timeframe='1Min').profit_loss_pct[index+1])*100
             return net
         except:
             return 0
