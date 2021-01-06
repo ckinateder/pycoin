@@ -109,9 +109,11 @@ class AlpacaTrader:
 
     def getNetPct(self):
         try:
-            #initial = datetime.datetime()
+            # initial = datetime.datetime()
             index = int((datetime.datetime.now().timestamp() - datetime.datetime.combine(
                 datetime.datetime.today(), datetime.time(9, 30)).timestamp())/60)  # minutes since open
+            if index > 390:  # get last
+                index = 390
             net = float(self.api.get_portfolio_history(
                 period='1D', timeframe='1Min').profit_loss_pct[index])
             return net
